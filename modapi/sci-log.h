@@ -22,8 +22,8 @@
 extern "C" {
 #endif
 
-#define SPHONE_LOG_SYSLOG			1	/**< Log to syslog */
-#define SPHONE_LOG_STDERR			0	/**< Log to stderr */
+#define SCI_LOG_SYSLOG			1	/**< Log to syslog */
+#define SCI_LOG_STDERR			0	/**< Log to stderr */
 
 #define sci_module_log(loglevel, fmt, ...) sci_log(loglevel, "%s: " fmt, MODULE_NAME, ##__VA_ARGS__)
 
