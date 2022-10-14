@@ -4,6 +4,8 @@ libscipaper is a shared library that allows you to get metadata to scientific pa
 When queried libscipaper will ask eatch of its backends to the database services to try and fill in information about the requested paper in order of the priority given in scipaper.ini or in the order requested by the user of the \ref API
 libscipaper also allows you to get full text as well as pdf files for scientific papers where they are availble.
 
+For questions or comments, as well as help with the usage of the plugin API contact
+
 This manual is divided in the following sections depending on if you want to use libscipaper in your application or write a plugin for it:
 - \subpage userapi
 - \subpage pluginapi
@@ -16,7 +18,7 @@ This api porvides the external functionality required to use libscipaper in your
 
 Full api documentation can be found in the module description \ref API
 
-Example usage:
+## Example usage:
 _______
 
 
@@ -93,12 +95,12 @@ _______
 #include "sci-backend.h"
 #include "scipaper.h"
 
-/** Module name every module is required to have this*/
+//Module name every module is required to have this
 #define MODULE_NAME		"test"
 
-/** Module information */
+//Module information every module is required to have this
 G_MODULE_EXPORT module_info_struct module_info = {
-	/** Name of the module */
+	//Name of the module
 	.name = MODULE_NAME,
 };
 
@@ -118,12 +120,14 @@ unsigned char* test_get_document_pdf_data_in(const DocumentMeta* meta, void* use
 }
 
 
+//function that is called when the module is loaded, every modul is required to have this
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);
 const gchar *sci_module_init(void** data)
 {
 	//Do whatever is nessecary to initalise your database.
 }
 
+//function that is called when the module is unloaded, every modul is required to have this
 G_MODULE_EXPORT void sci_module_exit(void* data);
 void sci_module_exit(void* data)
 {
