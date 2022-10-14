@@ -35,7 +35,7 @@ _______
     		return 1;
     	}
 
-    	char doi[] = "10.1109/DSP-SPE.2011.5739265"
+    	char doi[] = "10.1109/DSP-SPE.2011.5739265";
     	DocumentMeta meta;
     	meta.doi = doi;
     	size_t count;
