@@ -1,6 +1,8 @@
 /*! \mainpage libscipaper manual
 
 libscipaper is a shared library that allows you to get metadata to scientific papers from various database services.
+When queried libscipaper will ask eatch of its backends to the database services to try and fill in information about the requested paper in order of the priority given in scipaper.ini or in the order requested by the user of the \ref API
+libscipaper also allows you to get full text as well as pdf files for scientific papers where they are availble.
 
 This manual is divided in the following sections depending on if you want to use libscipaper in your application or write a plugin for it:
 - \subpage userapi
@@ -68,5 +70,64 @@ _______
 //-----------------------------------------------------------
 
 /*! \page pluginapi Plugin API
+	This api porvides the ability to write a pulgin that implements a backend to a database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases.
 
+	Full api documentation can be found in the module description \ref MODAPI
+
+	A libscipaper module is a c tanslation unit that contains `#define MODULE_NAME "some-name"` as well as exporting the symbols \ref module_info_struct, sci_module_init of type \ref sci_module_init_fn and sci_module_exit of type \ref sci_module_exit_fn.
+
+	modules are expeted to use the `sci_conf_*` family of functions to gain external site specific information sutch as api keys and use \ref sci_module_log for debug as well as error output. Any library such as libcurl may be used to gather information in the struct.
+
+	For a module to be usefull it must also define an implementation at least one of the following functions:
+
+	- \ref sci_fill_meta
+	- \ref sci_get_document_text
+	- \ref sci_get_document_pdf_data
+
+	and must register one or more of these functions with libscipaper using \ref sci_plugin_register
+
+	thus the basic structure of a libscipaper plugin looks like this:
+@code
+#include "sci-modules.h"
+#include "sci-log.h"
+#include "sci-backend.h"
+#include "scipaper.h"
+
+/** Module name every module is required to have this*/
+#define MODULE_NAME		"test"
+
+/** Module information */
+G_MODULE_EXPORT module_info_struct module_info = {
+	/** Name of the module */
+	.name = MODULE_NAME,
+};
+
+DocumentMeta** test_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+{
+	//Check out the the contense of meta here and search for the contained fields in your database, return a list DocumentMeta structs that describe the search results
+}
+
+char* test_get_document_text_in(const DocumentMeta* meta, void* userData)
+{
+	//Check out the the contense of meta here and search for the contained fields in your database, return the full text of the first search result.
+}
+
+unsigned char* test_get_document_pdf_data_in(const DocumentMeta* meta, void* userData)
+{
+	//Check out the the contense of meta here and search for the contained fields in your database, return raw pdf binary data for the first search result.
+}
+
+
+G_MODULE_EXPORT const gchar *sci_module_init(void** data);
+const gchar *sci_module_init(void** data)
+{
+	//Do whatever is nessecary to initalise your database.
+}
+
+G_MODULE_EXPORT void sci_module_exit(void* data);
+void sci_module_exit(void* data)
+{
+	//Free any resources you have aquired.
+}
+@endcode
 */

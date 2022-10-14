@@ -53,7 +53,7 @@ typedef struct {
 } module_info_struct;
 
 /**
- * Modules must export a function with this symbol name, it will be called when the module is loaded
+ * Modules must export a symbol of this type called sci_module_init, it will be called when the module is loaded
  *
  * @param data this pointer may be set by the module to pass context that is later given to sci_module_exit_fn()
  * @return If initalization is sucessfull this symbol shal return NULL, otherwise a const string describeing the problem is to be passed
@@ -62,7 +62,7 @@ typedef const char* sci_module_init_fn(void** data);
 
 
 /**
- * Modules must export a function with this symbol name, it will be called just before the module is removed
+ * Modules must export a symbol of this type called sci_module_exit, it will be called just before the module is removed
  *
  * @param data this pointer gives this funciton context passed from sci_module_init_fn.
  */
