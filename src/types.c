@@ -36,24 +36,30 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta)
 
 void document_meta_free(DocumentMeta* meta)
 {
-	g_free(meta->doi);
-	g_free(meta->url);
-	g_free(meta->publisher);
-	g_free(meta->volume);
-	g_free(meta->pages);
-	g_free(meta->author);
-	g_free(meta->title);
-	g_free(meta->journal);
-	g_free(meta->keywords);
-	g_free(meta->pdfUrl);
-	g_free(meta->bibtex);
-	g_free(meta->backendData);
-	g_free(meta);
+	if(meta)
+	{
+		g_free(meta->doi);
+		g_free(meta->url);
+		g_free(meta->publisher);
+		g_free(meta->volume);
+		g_free(meta->pages);
+		g_free(meta->author);
+		g_free(meta->title);
+		g_free(meta->journal);
+		g_free(meta->keywords);
+		g_free(meta->pdfUrl);
+		g_free(meta->bibtex);
+		g_free(meta->backendData);
+		g_free(meta);
+	}
 }
 
 void document_meta_free_list(DocumentMeta** meta, size_t length)
 {
-	for(size_t i = 0; i < length; ++i)
-		document_meta_free(meta[i]);
-	g_free(meta);
+	if(meta)
+	{
+		for(size_t i = 0; i < length; ++i)
+			document_meta_free(meta[i]);
+		g_free(meta);
+	}
 }

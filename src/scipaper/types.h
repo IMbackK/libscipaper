@@ -1,26 +1,58 @@
 #pragma once
 #include <time.h>
 
-typedef struct _DocumentMeta {
-	char* doi;
-	char* url;
-	struct timespec time;
-	char* publisher;
-	char* volume;
-	char* pages;
-	char* author;
-	char* title;
-	char* journal;
-	char* keywords;
-	char* pdfUrl;
-	char* bibtex;
+/**
+....
+* @addtogroup API
+*
+* @{
+*/
 
-	int backendId;
-	void* backendData;
-	size_t backendDataLength;
+/**
+ * @brief This struct contains the metadata of a paper
+ */
+typedef struct _DocumentMeta {
+	char* doi; /**< The doi of the paper */
+	char* url; /**< The url of the paper in the journal */
+	struct timespec time; /**< Publication time of the paper */
+	char* publisher; /**< Publisher time of the paper */
+	char* volume; /**< Jornal volume where the paper apeard */
+	char* pages; /**< Page(s) where the paper is to be found in the volume */
+	char* author; /**< The author(s) of the paper */
+	char* title; /**< The title of the paper */
+	char* journal; /**< The journal in which the paper was published */
+	char* keywords; /**< Keywords given by the author of the paper for the paper */
+	char* pdfUrl; /**< Url where the pdf of the document can be found */
+	char* bibtex; /**< Biblatex entry for the document */
+
+	int backendId; /**< The id of the backend that found the document, or the id that shal be tried to find the document */
+	void* backendData; /**< Backend specific data */
+	size_t backendDataLength; /**< Length of the backend specific data */
 } DocumentMeta;
 
+/**
+ * @brief Mallocs a DocumentMeta struct and initalizes it
+ * @return A newly allocated DocumentMeta struct
+ */
 DocumentMeta* document_meta_new(void);
+
+/**
+ * @brief Dose a deep copy of a DocumentMeta struct
+ * @param meta The DocumentMeta struct to copy
+ * @return A newly allocated copy of the meta struct
+ */
 DocumentMeta* document_meta_copy(const DocumentMeta* meta);
+
+/**
+ * @brief Frees a document meta struct
+ * @param meta The DocumentMeta struct to free
+ */
 void document_meta_free(DocumentMeta* meta);
+
+/**
+ * @brief Frees a list/array of document metas
+ * @param meta The DocumentMeta array to free
+ */
 void document_meta_free_list(DocumentMeta** meta, size_t length);
+
+/**@}*/

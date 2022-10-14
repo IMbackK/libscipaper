@@ -25,7 +25,21 @@ extern "C" {
 #define SCI_LOG_SYSLOG			1	/**< Log to syslog */
 #define SCI_LOG_STDERR			0	/**< Log to stderr */
 
+/**
+* @addtogroup MODAPI
+* @{
+*/
+
+/**
+ * Print a string to the log
+ *
+ * @param loglevel Log level to use
+ * @param fmt printf style format string
+ * @param ... Values to place into format string
+ */
 #define sci_module_log(loglevel, fmt, ...) sci_log(loglevel, "%s: " fmt, MODULE_NAME, ##__VA_ARGS__)
+
+/**@}*/
 
 /** Severity of loglevels */
 typedef enum {

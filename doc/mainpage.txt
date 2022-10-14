@@ -1,0 +1,72 @@
+/*! \mainpage libscipaper manual
+
+libscipaper is a shared library that allows you to get metadata to scientific papers from various database services.
+
+This manual is divided in the following sections depending on if you want to use libscipaper in your application or write a plugin for it:
+- \subpage userapi
+- \subpage pluginapi
+*/
+
+//-----------------------------------------------------------
+
+/*! \page userapi User API
+This api porvides the external functionality required to use libscipaper in your application to get document metadata as well as full text.
+
+Full api documentation can be found in the module description \ref API
+
+Example usage:
+_______
+
+
+    #include <stdio.h>
+    #include <stdbool.h>
+    #include <scipaper/scipaper.h>
+
+    int main(int argc, char** argv)
+    {
+    	bool ret = sci_paper_init(NULL);
+    	if(!ret)
+    	{
+    		printf("Could not init libscipaper");
+    		return 1;
+    	}
+
+    	char doi[] = "10.1109/DSP-SPE.2011.5739265"
+    	DocumentMeta meta;
+    	meta.doi = doi;
+    	size_t count;
+    	DocumentMeta** filledMetas = sci_fill_meta(&meta, &count, 1);
+
+    	if(count > 0)
+    	{
+    		printf("Found document with doi of: %s\n", doi);
+    		if(filledMetas[0]->title)
+    			printf("Title: %s\n", filledMetas[0]->title);
+    		if(filledMetas[0]->author)
+    			printf("Author: %s\n", filledMetas[0]->author);
+    		if(filledMetas[0]->journal)
+    			printf("Journal: %s\n", filledMetas[0]->journal);
+
+    		bool saved = sci_save_document_to_pdf(filledMetas[0], "out.pdf");
+    		if(saved)
+    			printf("Was able to save pdf of document\n");
+    		else
+    			printf("Was not able to save pdf of document\n");
+    	}
+    	else
+    	{
+    		printf("Unable to find document with doi of: %s\n", doi);
+    	}
+
+    	document_meta_free_list(filledMetas, count);
+    	return 0;
+    }
+
+
+*/
+
+//-----------------------------------------------------------
+
+/*! \page pluginapi Plugin API
+
+*/

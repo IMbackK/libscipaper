@@ -9,6 +9,7 @@ add_definitions(-DSCI_MODULE_DIR=${SCI_MODULE_DIR})
 add_definitions(-DSCI_SYSCONF_DIR=${SCI_SYSCONF_DIR})
 add_definitions(-DSCI_SYSCONF_INI=scipaper.ini)
 
+find_package(Doxygen)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(GMODULE REQUIRED gmodule-2.0)
@@ -23,6 +24,21 @@ set(API_HEADERS
 	${API_HEADERS_DIR}/scipaper.h
 )
 install(FILES ${API_HEADERS} DESTINATION include/${PROJECT_NAME})
+
+if (DOXYGEN_FOUND)
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/doc/libscipaper.doxygen.in)
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/doc/libscipaper.doxygen)
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+    message("Doxygen build started")
+
+    add_custom_target(doc ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM )
+else (DOXYGEN_FOUND)
+  message("Doxygen needs to be installed to generate the doxygen documentation")
+endif (DOXYGEN_FOUND)
 
 add_subdirectory(config)
 add_subdirectory(src)

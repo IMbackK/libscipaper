@@ -40,15 +40,38 @@ extern "C" {
 /** Default value for module path */
 #define DEFAULT_SCI_MODULE_PATH		"/usr/lib/scipaper/modules"
 
+/**
+* @addtogroup MODAPI
+* @{
+*/
+
+/**
+ * Module information struct
+ */
 typedef struct {
-	const gchar *const name;
+	const gchar *const name; /**< Name of the plugin */
 } module_info_struct;
+
+/**
+ * Modules must export a function with this symbol name, it will be called when the module is loaded
+ *
+ * @param data this pointer may be set by the module to pass context that is later given to sci_module_exit_fn()
+ * @return If initalization is sucessfull this symbol shal return NULL, otherwise a const string describeing the problem is to be passed
+ */
+typedef const char* sci_module_init_fn(void** data);
+
+
+/**
+ * Modules must export a function with this symbol name, it will be called just before the module is removed
+ *
+ * @param data this pointer gives this funciton context passed from sci_module_init_fn.
+ */
+typedef void sci_module_exit_fn(void* data);
+
+/**@}*/
 
 bool sci_modules_init(void);
 void sci_modules_exit(void);
-
-typedef const char* sci_module_init_fn(void** data);
-typedef void sci_module_exit_fn(void* data);
 
 #ifdef __cplusplus
 }
