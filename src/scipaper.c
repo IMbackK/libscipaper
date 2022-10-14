@@ -1,9 +1,11 @@
 #include "scipaper.h"
 
 #include <stdbool.h>
+#include <assert.h>
 
 #include "sci-log.h"
 #include "sci-conf.h"
+#include "sci-modules.h"
 #include "scipaper.h"
 
 bool sci_paper_init(const char* config_file)
@@ -15,6 +17,8 @@ bool sci_paper_init(const char* config_file)
 
 	if(!sci_modules_init())
 		return false;
+
+	return true;
 }
 
 void sci_paper_exit(void)
@@ -26,42 +30,54 @@ void sci_paper_exit(void)
 DocumentMeta* sci_find_by_doi(const char* doi)
 {
 	DocumentMeta meta = {0};
-	meta.doi = doi;
+	meta.doi = (char*)doi;
 	size_t count;
 	DocumentMeta** documentMetas = sci_fill_meta(&meta, &count, 1);
-	if(count > 0)
-		return documentMetas[0]
+	if(documentMetas)
+	{
+		DocumentMeta* meta = documentMetas[0];
+		g_free(documentMetas);
+		return meta;
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 DocumentMeta** sci_find_by_author(const char* author, size_t* count, size_t maxCount)
 {
 	DocumentMeta meta = {0};
-	meta.author = author;
+	meta.author = (char*)author;
 	return sci_fill_meta(&meta, count, maxCount);
 }
 
 DocumentMeta* sci_find_by_title(const char* title)
 {
 	DocumentMeta meta = {0};
-	meta.title = title;
+	meta.title = (char*)title;
 	size_t count;
 	DocumentMeta** documentMetas = sci_fill_meta(&meta, &count, 1);
-	if(count > 0)
-		return documentMetas[0]
+	if(documentMetas)
+	{
+		DocumentMeta* meta = documentMetas[0];
+		g_free(documentMetas);
+		return meta;
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 DocumentMeta** sci_find_by_journal(const char* jornal, size_t* count, size_t maxCount)
 {
 	DocumentMeta meta = {0};
-	meta.jornal = jornal;
-	return sci_fill_meta(&jornal, count, maxCount);
+	meta.journal = (char*)jornal;
+	return sci_fill_meta(&meta, count, maxCount);
 }
 
-bool sci_save_document_to_pdf(DocumentMeta* meta, const char* fileName)
+bool sci_save_document_to_pdf(const DocumentMeta* meta, const char* fileName)
 {
 	//TODO: implement
 	assert(false);

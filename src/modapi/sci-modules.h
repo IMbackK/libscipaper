@@ -38,7 +38,7 @@ extern "C" {
 #define SCI_CONF_MODULES_MODULES	"Modules"
 
 /** Default value for module path */
-#define DEFAULT_SCI_MODULE_PATH		"/usr/lib/sci/modules"
+#define DEFAULT_SCI_MODULE_PATH		"/usr/lib/scipaper/modules"
 
 typedef struct {
 	const gchar *const name;

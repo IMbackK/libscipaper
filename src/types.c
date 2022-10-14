@@ -3,9 +3,14 @@
 #include <stdio.h>
 #include <string.h>
 
-DocumentMata* document_meta_copy(const DocumentMata* meta)
+DocumentMeta* document_meta_new(void)
 {
-	DocumentMata* copy = g_malloc0(sizeof(*copy));
+	return g_malloc0(sizeof(DocumentMeta));
+}
+
+DocumentMeta* document_meta_copy(const DocumentMeta* meta)
+{
+	DocumentMeta* copy = g_malloc0(sizeof(*copy));
 
 	copy->doi = g_strdup(meta->doi);
 	copy->url = g_strdup(meta->url);
@@ -15,10 +20,10 @@ DocumentMata* document_meta_copy(const DocumentMata* meta)
 	copy->pages = g_strdup(meta->pages);
 	copy->author = g_strdup(meta->author);
 	copy->title = g_strdup(meta->title);
-	copy->jornal = g_strdup(meta->jornal);
+	copy->journal = g_strdup(meta->journal);
 	copy->keywords = g_strdup(meta->keywords);
 	copy->pdfUrl = g_strdup(meta->pdfUrl);
-	copy->filledByBackend = meta->filledByBackend;
+	copy->backendId = meta->backendId;
 	if(meta->backendData)
 	{
 		copy->backendData = g_malloc0(meta->backendDataLength);
@@ -29,7 +34,7 @@ DocumentMata* document_meta_copy(const DocumentMata* meta)
 	return copy;
 }
 
-DocumentMata* document_meta_free(const DocumentMata* meta)
+void document_meta_free(DocumentMeta* meta)
 {
 	g_free(meta->doi);
 	g_free(meta->url);
@@ -38,10 +43,17 @@ DocumentMata* document_meta_free(const DocumentMata* meta)
 	g_free(meta->pages);
 	g_free(meta->author);
 	g_free(meta->title);
-	g_free(meta->jornal);
+	g_free(meta->journal);
 	g_free(meta->keywords);
 	g_free(meta->pdfUrl);
 	g_free(meta->bibtex);
-	g_gree(meta->backendData);
+	g_free(meta->backendData);
+	g_free(meta);
+}
+
+void document_meta_free_list(DocumentMeta** meta, size_t length)
+{
+	for(size_t i = 0; i < length; ++i)
+		document_meta_free(meta[i]);
 	g_free(meta);
 }

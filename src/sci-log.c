@@ -26,7 +26,7 @@
 #include "sci-log.h"
 
 static unsigned int logverbosity = LL_WARN;	/**< Log verbosity */
-static int logtype = SPHONE_LOG_SYSLOG;		/**< Output for log messages */
+static int logtype = SCI_LOG_SYSLOG;		/**< Output for log messages */
 static char *logname = NULL;
 
 /**
@@ -42,7 +42,7 @@ void sci_log(const loglevel_t loglevel, const char *const fmt, ...)
 	va_start(args, fmt);
 
 	if (logverbosity >= loglevel) {
-		if (logtype == SPHONE_LOG_STDERR) {
+		if (logtype == SCI_LOG_STDERR) {
 			fprintf(stderr, "%s: ", logname);
 			vfprintf(stderr, fmt, args);
 			size_t len = strlen(fmt);
@@ -93,13 +93,13 @@ void sci_log_set_verbosity(const int verbosity)
  *
  * @param name identifier to use for log messages
  * @param facility the log facility; normally LOG_USER or LOG_DAEMON
- * @param type log type to use; SPHONE_LOG_STDERR or SPHONE_LOG_SYSLOG
+ * @param type log type to use; SCI_LOG_STDERR or SCI_LOG_SYSLOG
  */
 void sci_log_open(const char *const name, const int facility, const int type)
 {
 	logtype = type;
 
-	if (logtype == SPHONE_LOG_SYSLOG)
+	if (logtype == SCI_LOG_SYSLOG)
 		openlog(name, LOG_PID | LOG_NDELAY, facility);
 	else
 		logname = strdup(name);
@@ -113,6 +113,6 @@ void sci_log_close(void)
 	if (logname)
 		free(logname);
 
-	if (logtype == SPHONE_LOG_SYSLOG)
+	if (logtype == SCI_LOG_SYSLOG)
 		closelog();
 }

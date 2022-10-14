@@ -1,6 +1,6 @@
 /**
  * @file sci-conf.c
- * Configuration option handling for SPHONE
+ * Configuration option handling for SCIPAPER
  * @author Carl Philipp Klemm <carl@uvos.xyz>
  *
  * scipaper is free software; you can redistribute it and/or modify
@@ -281,26 +281,6 @@ void sci_conf_free_conf_file(gpointer keyfileptr)
 	}
 }
 
-
-static int sci_conf_compare_file_prio(const void *a, const void *b)
-{
-	const struct sci_conf_file *conf_a = (const struct sci_conf_file *) a;
-	const struct sci_conf_file *conf_b = (const struct sci_conf_file *) b;
-	
-	if (conf_a->filename == NULL && conf_b->filename == NULL)
-		return 0;
-	if (conf_a->filename == NULL && conf_b->filename != NULL)
-		return -1;
-	if (conf_a->filename != NULL && conf_b->filename == NULL)
-		return 1;
-	if (strcmp(conf_a->filename, G_STRINGIFY(SPHONE_SYSCONF_INI)) == 0)
-		return -1;
-	if (strcmp(conf_b->filename, G_STRINGIFY(SPHONE_SYSCONF_INI)) == 0)
-		return 1;
-
-	return strverscmp(conf_a->filename, conf_b->filename);
-}
-
 /**
  * Read configuration file
  *
@@ -349,7 +329,6 @@ static bool sci_conf_is_ini_file(const char *filename)
  */
 bool sci_conf_init(const char* fileName)
 {
-	DIR *dir = NULL;
 	sci_conf_file_count = fileName ? 2 : 1;
 
 	conf_files = calloc(sci_conf_file_count, sizeof(*conf_files));
@@ -369,7 +348,7 @@ bool sci_conf_init(const char* fileName)
 	}
 	conf_files[0].keyfile = main_conf_file;
 
-	if(fileName)
+	if(fileName && sci_conf_is_ini_file(fileName))
 	{
 		conf_files[1].filename = g_strdup(fileName);
 		conf_files[1].path     = g_strdup(fileName);
@@ -386,6 +365,10 @@ bool sci_conf_init(const char* fileName)
 		}
 		conf_files[1].keyfile = application_conf_file;
 	}
+	else if(!sci_conf_is_ini_file(fileName))
+	{
+		sci_log(LL_ERR, "sci-conf: conf file %s is not an ini file!", fileName);
+	}
 	
 	for (size_t i = 0; i < sci_conf_file_count; ++i)
 		sci_log(LL_DEBUG, "sci-conf: using conf file %lu: %s", (unsigned long)i, conf_files[i].filename);
@@ -398,7 +381,8 @@ bool sci_conf_init(const char* fileName)
  */
 void sci_conf_exit(void)
 {
-	for (size_t i = 0; i < sci_conf_file_count; ++i) {
+	for(size_t i = 0; i < sci_conf_file_count; ++i)
+	{
 		if (conf_files[i].filename)
 			g_free(conf_files[i].filename);
 		if (conf_files[i].path)
