@@ -17,6 +17,8 @@
  */
 
 #include <glib.h>
+#include <assert.h>
+
 #include "sci-modules.h"
 #include "sci-log.h"
 #include "sci-backend.h"
@@ -30,20 +32,38 @@
 #define MODULE_NAME		"crossref"
 
 /** Module information */
-G_MODULE_EXPORT module_info_struct module_info = {
+G_MODULE_EXPORT BackendInfo backend_info = {
 	/** Name of the module */
 	.name = MODULE_NAME,
 };
 
 #define CROSSREF_URL_DOMAIN  "https://api.crossref.org/"
-#define CROSSREF_URL_WORKS CROSSREF_URL_DOMAIN "works/"
+#define CROSSREF_URL_WORKS CROSSREF_URL_DOMAIN "works"
+#define CROSSREF_SELECT "DOI,ISSN,abstract,author,publisher,volume,title"
 
 struct CrPriv
 {
 	char* email;
-	int rateLimitInterval;
+	int rateLimit;
 	int id;
 };
+
+static GString* cf_create_url(struct CrPriv *priv, GSList* queryList)
+{
+	GString* url = g_string_new(CROSSREF_URL_WORKS);
+
+	if(priv->email)
+		queryList = g_slist_prepend(queryList, pair_new("mailto", priv->email));
+
+	queryList = g_slist_prepend(queryList, pair_new("select", CROSSREF_SELECT));
+
+	GString* query = buildQuery(queryList);
+	g_string_append(url, query->str);
+	g_string_free(query, true);
+	g_slist_free_full(queryList, (void(*)(void*))pair_free);
+
+	return url;
+}
 
 static DocumentMeta* cf_parse_work_json(char* jsonText, const DocumentMeta* metaIn)
 {
@@ -75,6 +95,7 @@ static DocumentMeta* cf_parse_work_json(char* jsonText, const DocumentMeta* meta
 
 	DocumentMeta* meta = metaIn ? document_meta_copy(metaIn) : document_meta_new();
 
+	meta->compleatedLookup = true;
 	meta->url    = g_strdup(nx_json_get(entry, "URL")->text_value);
 	const nx_json* authorArray = nx_json_get(entry, "author");
 	GString* authorString = g_string_new(NULL);
@@ -95,6 +116,7 @@ static DocumentMeta* cf_parse_work_json(char* jsonText, const DocumentMeta* meta
 
 	const nx_json* titleArray = nx_json_get(entry, "title");
 	meta->title = g_strdup(nx_json_item(titleArray, 0)->text_value);
+	meta->abstract = g_strdup(nx_json_get(entry, "abstract")->text_value);
 
 	nx_json_free(json);
 
@@ -103,7 +125,8 @@ static DocumentMeta* cf_parse_work_json(char* jsonText, const DocumentMeta* meta
 
 static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, struct CrPriv* priv)
 {
-	GString* url = g_string_new(CROSSREF_URL_WORKS);
+	GString* url = cf_create_url(priv, NULL);
+	g_string_append_c(url, '/');
 	g_string_append(url, meta->doi);
 	GString* jsonText = wgetUrl(url->str);
 	g_string_free(url, true);
@@ -128,6 +151,36 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	return ret;
 }
 
+static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* count, size_t maxCount, struct CrPriv* priv)
+{
+	GSList* queryList = NULL;
+
+	if(meta->author)
+		queryList = g_slist_prepend(queryList, pair_new("query.author", meta->author));
+	if(meta->title)
+		queryList = g_slist_prepend(queryList, pair_new("query.title", meta->title));
+	if(meta->journal)
+		queryList = g_slist_prepend(queryList, pair_new("query.publisher-name", meta->journal));
+	if(meta->hasFullText)
+		queryList = g_slist_prepend(queryList, pair_new("filter", "has-full-text:true"));
+	if(meta->year)
+	{
+		char* yearStr = g_strdup_printf("%lu", meta->year);
+		queryList = g_slist_prepend(queryList, pair_new("query.bibliographic", yearStr));
+		g_free(yearStr);
+	}
+
+	if(queryList)
+	{
+		GString* url = cf_create_url(priv, queryList);
+		GString* jsonText = wgetUrl(url->str);
+		g_string_free(url, true);
+		sci_module_log(LL_ERR, "%s", url->str);
+		assert(false);
+	}
+	return NULL;
+}
+
 static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
 {
 	struct CrPriv* priv = userData;
@@ -136,16 +189,16 @@ static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, s
 	if(meta->doi)
 		return cf_fill_from_doi(count, meta, priv);
 
-	return NULL;
+	return cf_fill_try_work_query(meta, count, maxCount, priv);;
 }
 
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);
 const gchar *sci_module_init(void** data)
 {
 	struct CrPriv* priv = g_malloc0(sizeof(*priv));
-	priv->id = sci_plugin_register(MODULE_NAME, cf_fill_meta_in, NULL, NULL, priv);
-	priv->rateLimitInterval = sci_conf_get_int("Crosref", "RateLimitInterval", 1, NULL);
-	priv->email = sci_conf_get_string("Crosref", "Email", NULL, NULL);
+	priv->id = sci_plugin_register(&backend_info, cf_fill_meta_in, NULL, NULL, priv);
+	priv->rateLimit = sci_conf_get_int("Crossref", "RateLimit", 1, NULL);
+	priv->email = sci_conf_get_string("Crossref", "Email", NULL, NULL);
 	*data = priv;
 	return NULL;
 }
