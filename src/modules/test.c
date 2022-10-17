@@ -27,7 +27,7 @@
 #define MODULE_NAME		"test"
 
 /** Module information */
-G_MODULE_EXPORT module_info_struct module_info = {
+G_MODULE_EXPORT BackendInfo backend_info = {
 	/** Name of the module */
 	.name = MODULE_NAME,
 };
@@ -71,7 +71,7 @@ unsigned char* test_get_document_pdf_data_in(const DocumentMeta* meta, void* use
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);
 const gchar *sci_module_init(void** data)
 {
-	data = GINT_TO_POINTER(sci_plugin_register(MODULE_NAME, test_fill_meta_in, test_get_document_text_in, test_get_document_pdf_data_in, NULL));
+	data = GINT_TO_POINTER(sci_plugin_register(&backend_info, test_fill_meta_in, test_get_document_text_in, test_get_document_pdf_data_in, NULL));
 	sci_module_log(LL_DEBUG, "works");
 	return NULL;
 }
