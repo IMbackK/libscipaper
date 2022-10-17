@@ -15,23 +15,26 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta)
 
 	copy->doi = g_strdup(meta->doi);
 	copy->url = g_strdup(meta->url);
-	copy->time = meta->time;
+	copy->year = meta->year;
 	copy->publisher = g_strdup(meta->publisher);
 	copy->volume = g_strdup(meta->volume);
 	copy->pages = g_strdup(meta->pages);
 	copy->author = g_strdup(meta->author);
 	copy->title = g_strdup(meta->title);
 	copy->journal = g_strdup(meta->journal);
+	copy->issn = g_strdup(meta->issn);
 	copy->keywords = g_strdup(meta->keywords);
 	copy->pdfUrl = g_strdup(meta->pdfUrl);
 	copy->abstract = g_strdup(meta->abstract);
 	copy->backendId = meta->backendId;
+	copy->hasFullText = meta->hasFullText;
 	if(meta->backendData)
 	{
 		copy->backendData = g_malloc0(meta->backendDataLength);
 		memcpy(copy->backendData, meta->backendData, meta->backendDataLength);
 	}
 	copy->backendDataLength = meta->backendDataLength;
+	copy->compleatedLookup = meta->compleatedLookup;
 
 	return copy;
 }
@@ -48,6 +51,7 @@ void document_meta_free(DocumentMeta* meta)
 		g_free(meta->author);
 		g_free(meta->title);
 		g_free(meta->journal);
+		g_free(meta->issn);
 		g_free(meta->keywords);
 		g_free(meta->pdfUrl);
 		g_free(meta->abstract);

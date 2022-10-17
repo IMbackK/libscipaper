@@ -2,6 +2,10 @@
 #include <time.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
 ....
 * @addtogroup API
@@ -10,24 +14,47 @@
 */
 
 /**
+ * @brief Severity of loglevels
+ */
+typedef enum {
+	LL_NONE = 0,			/**< No logging at all */
+	LL_CRIT = 1,			/**< Critical error */
+	LL_ERR = 2,			 	/**< Error */
+	LL_WARN = 3,			/**< Warning */
+	LL_DEFAULT = LL_WARN,	/**< Default log level */
+	LL_INFO = 4,			/**< Informational message */
+	LL_DEBUG = 5			/**< Useful when debugging */
+} loglevel_t;
+
+/**
+ * @brief Backend information struct
+ */
+typedef struct _BackendInfo {
+	const char *const name; /**< Name of the plugin */
+} BackendInfo;
+
+/**
  * @brief This struct contains the metadata of a paper
  */
 typedef struct _DocumentMeta {
 	char* doi; /**< The doi of the paper */
 	char* url; /**< The url of the paper in the journal */
-	struct timespec time; /**< Publication time of the paper */
+	unsigned long year; /**< Publication year of the paper */
 	char* publisher; /**< Publisher time of the paper */
 	char* volume; /**< Jornal volume where the paper apeard */
 	char* pages; /**< Page(s) where the paper is to be found in the volume */
 	char* author; /**< The author(s) of the paper */
 	char* title; /**< The title of the paper */
 	char* journal; /**< The journal in which the paper was published */
+	char* issn; /**< The journal issn in which the paper was published */
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
 	char* pdfUrl; /**< Url where the pdf of the document can be found */
 	char* abstract; /**< abstract of the document */
+	bool hasFullText; /**< a hint that docuement has full text avialable */
 
 	int backendId; /**< The id of the backend that found the document, or the id that shal be tried to find the document */
 	void* backendData; /**< Backend specific data */
+	bool compleatedLookup; /**< Entry lookup compleated */
 	size_t backendDataLength; /**< Length of the backend specific data */
 } DocumentMeta;
 
@@ -64,3 +91,7 @@ void document_meta_print(const DocumentMeta* meta, bool info);
 void document_meta_free_list(DocumentMeta** meta, size_t length);
 
 /**@}*/
+
+#ifdef __cplusplus
+}
+#endif
