@@ -41,7 +41,7 @@ extern "C" {
 #define NX_JSON_FREE(json) free((void*)(json))
 #endif
 
-#define NX_JSON_REPORT_ERROR(msg, p) printf("Json: Error: " msg " at %s", p)
+#define NX_JSON_REPORT_ERROR(msg, p) sci_log(LL_ERR, "Json: Error: " msg " at %s", p)
 
 #define IS_WHITESPACE(c) ((unsigned char)(c)<=(unsigned char)' ')
 

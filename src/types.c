@@ -2,6 +2,7 @@
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>
+#include "sci-log.h"
 
 DocumentMeta* document_meta_new(void)
 {
@@ -55,13 +56,13 @@ void document_meta_free(DocumentMeta* meta)
 	}
 }
 
-/*void document_meta_print(const DocumentMeta* meta, int (*printFn)(const char* fmt, ...))
+void document_meta_print(const DocumentMeta* meta, bool info)
 {
-	printFn("Document:\nDOI: %s\nTitle: %s\nAuthor: %s\nJournal: %s\nKeywords: %s\nAbstract: %s\n",
+	sci_log(info ? LL_INFO : LL_DEBUG, "Document:\nDOI: %s\nTitle: %s\nAuthor: %s\nJournal: %s\nKeywords: %s\nAbstract: %s\n",
 		meta->doi ? meta->doi : "", meta->title ? meta->title : "", meta->author ? meta->author : "",
 		meta->journal ? meta->journal : "", meta->keywords ? meta->keywords : "",
 		meta->abstract ? meta->abstract : "");
-}*/
+}
 
 void document_meta_free_list(DocumentMeta** meta, size_t length)
 {

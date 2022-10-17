@@ -1,5 +1,6 @@
 #pragma once
 #include <time.h>
+#include <stdbool.h>
 
 /**
 ....
@@ -51,10 +52,10 @@ void document_meta_free(DocumentMeta* meta);
 
 /**
  * @brief Prints a DocumentMeta to formated text output using the passed printf like printFn
+ * @param info Print with INFO priority if true and DEBUG priority if false
  * @param meta The DocumentMeta struct to print
- * @param printFn The printf-like function to use to print
  */
-//void document_meta_print(const DocumentMeta* meta, int (*printFn)(const char* fmt, ...))
+void document_meta_print(const DocumentMeta* meta, bool info);
 
 /**
  * @brief Frees a list/array of document metas
