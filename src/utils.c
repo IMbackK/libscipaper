@@ -3,6 +3,38 @@
 #include <curl/curl.h>
 #include <sci-log.h>
 #include <assert.h>
+#include <stdbool.h>
+
+void pair_free(struct Pair* pair)
+{
+	g_free(pair->key);
+	g_free(pair->value);
+	g_free(pair);
+}
+
+struct Pair* pair_new(const char* key, const char* value)
+{
+	struct Pair* ret = g_malloc0(sizeof(*ret));
+	ret->key = g_strdup(key);
+	ret->value = g_strdup(value);
+	return ret;
+}
+
+GString* buildQuery(const GSList* list)
+{
+	GString* string = g_string_new("?");
+	for(const GSList* element = list; element; element = element->next)
+	{
+		const struct Pair *pair = element->data;
+		g_string_append(string, pair->key);
+		g_string_append_c(string, '=');
+		char* escapedValue = g_uri_escape_string(pair->value, NULL, false);
+		g_string_append(string, escapedValue);
+		if(element->next)
+			g_string_append_c(string, '&');
+	}
+	return string;
+}
 
 static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
