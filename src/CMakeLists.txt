@@ -4,7 +4,9 @@ set(SRC_FILES
 	sci-log.c
 	sci-modules.c
 	scipaper.c
-	types.c)
+	types.c
+	utils.c
+	nxjson.c)
 
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} ${COMMON_LIBRARIES})

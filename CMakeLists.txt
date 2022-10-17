@@ -10,12 +10,14 @@ add_definitions(-DSCI_SYSCONF_DIR=${SCI_SYSCONF_DIR})
 add_definitions(-DSCI_SYSCONF_INI=scipaper.ini)
 
 find_package(Doxygen)
+
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(GMODULE REQUIRED gmodule-2.0)
+pkg_check_modules(CURL REQUIRED libcurl)
 
-set(COMMON_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GMODULE_INCLUDE_DIRS} ./${PROJECT_NAME} ./modapi .)
-set(COMMON_LIBRARIES ${GLIB_LIBRARIES} ${GMODULE_LIBRARIES})
+set(COMMON_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GMODULE_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS} ./${PROJECT_NAME} ./modapi .)
+set(COMMON_LIBRARIES ${GLIB_LIBRARIES} ${GMODULE_LIBRARIES} ${CURL_LIBRARIES})
 
 set(CMAKE_INSTALL_PREFIX "/usr")
 

@@ -23,7 +23,7 @@ typedef struct _DocumentMeta {
 	char* journal; /**< The journal in which the paper was published */
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
 	char* pdfUrl; /**< Url where the pdf of the document can be found */
-	char* bibtex; /**< Biblatex entry for the document */
+	char* abstract; /**< abstract of the document */
 
 	int backendId; /**< The id of the backend that found the document, or the id that shal be tried to find the document */
 	void* backendData; /**< Backend specific data */
@@ -48,6 +48,13 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta);
  * @param meta The DocumentMeta struct to free
  */
 void document_meta_free(DocumentMeta* meta);
+
+/**
+ * @brief Prints a DocumentMeta to formated text output using the passed printf like printFn
+ * @param meta The DocumentMeta struct to print
+ * @param printFn The printf-like function to use to print
+ */
+//void document_meta_print(const DocumentMeta* meta, int (*printFn)(const char* fmt, ...))
 
 /**
  * @brief Frees a list/array of document metas

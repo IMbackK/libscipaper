@@ -6,3 +6,10 @@ target_include_directories(test SYSTEM PRIVATE ${COMMON_INCLUDE_DIRS})
 target_include_directories(test PRIVATE ${MODULE_INCLUDE_DIRS})
 install(TARGETS test DESTINATION ${SCI_MODULE_DIR})
 
+message("crossref support module enabled")
+add_library(crossref SHARED crossref.c)
+target_link_libraries(crossref ${COMMON_LIBRARIES})
+target_include_directories(crossref SYSTEM PRIVATE ${COMMON_INCLUDE_DIRS})
+target_include_directories(crossref PRIVATE ${MODULE_INCLUDE_DIRS})
+install(TARGETS crossref DESTINATION ${SCI_MODULE_DIR})
+

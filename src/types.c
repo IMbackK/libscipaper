@@ -23,6 +23,7 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta)
 	copy->journal = g_strdup(meta->journal);
 	copy->keywords = g_strdup(meta->keywords);
 	copy->pdfUrl = g_strdup(meta->pdfUrl);
+	copy->abstract = g_strdup(meta->abstract);
 	copy->backendId = meta->backendId;
 	if(meta->backendData)
 	{
@@ -48,11 +49,19 @@ void document_meta_free(DocumentMeta* meta)
 		g_free(meta->journal);
 		g_free(meta->keywords);
 		g_free(meta->pdfUrl);
-		g_free(meta->bibtex);
+		g_free(meta->abstract);
 		g_free(meta->backendData);
 		g_free(meta);
 	}
 }
+
+/*void document_meta_print(const DocumentMeta* meta, int (*printFn)(const char* fmt, ...))
+{
+	printFn("Document:\nDOI: %s\nTitle: %s\nAuthor: %s\nJournal: %s\nKeywords: %s\nAbstract: %s\n",
+		meta->doi ? meta->doi : "", meta->title ? meta->title : "", meta->author ? meta->author : "",
+		meta->journal ? meta->journal : "", meta->keywords ? meta->keywords : "",
+		meta->abstract ? meta->abstract : "");
+}*/
 
 void document_meta_free_list(DocumentMeta** meta, size_t length)
 {
