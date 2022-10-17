@@ -46,13 +46,6 @@ extern "C" {
 */
 
 /**
- * Module information struct
- */
-typedef struct {
-	const gchar *const name; /**< Name of the plugin */
-} module_info_struct;
-
-/**
  * Modules must export a symbol of this type called sci_module_init, it will be called when the module is loaded
  *
  * @param data this pointer may be set by the module to pass context that is later given to sci_module_exit_fn()

@@ -30,12 +30,12 @@ struct sci_module {
 /** List of all loaded modules */
 static GSList *modules = NULL;
 
-static module_info_struct *sci_modules_get_info(struct sci_module *module)
+static BackendInfo *sci_modules_get_info(struct sci_module *module)
 {
 	gpointer mip = NULL;
-	if(g_module_symbol(module->module, "module_info", (void**)&mip) == FALSE)
+	if(g_module_symbol(module->module, "backend_info", (void**)&mip) == FALSE)
 		return NULL;
-	return (module_info_struct*)mip;
+	return (BackendInfo*)mip;
 }
 
 static bool sci_modules_init_modules(void)
@@ -82,12 +82,12 @@ static void sci_modules_load(gchar **modlist)
 		sci_log(LL_DEBUG, "Loading module: %s from %s", modlist[i], path);
 
 		if ((module->module = g_module_open(tmp, 0)) != NULL) {
-			module_info_struct *info = sci_modules_get_info(module);
+			BackendInfo *info = sci_modules_get_info(module);
 			bool blockLoad = FALSE;
 
 			if(!info)
 			{
-				sci_log(LL_ERR, "Failed to retrieve module information for: %s", modlist[i]);
+				sci_log(LL_ERR, "Failed to retrieve module information for: %s did you forget to export a backend_info symbol?", modlist[i]);
 				g_module_close(module->module);
 				g_free(module);
 				blockLoad = TRUE;
