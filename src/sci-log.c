@@ -25,7 +25,7 @@
 #include <syslog.h>
 #include "sci-log.h"
 
-static unsigned int logverbosity = LL_WARN;	/**< Log verbosity */
+static loglevel_t logverbosity = LL_WARN;	/**< Log verbosity */
 static int logtype = SCI_LOG_SYSLOG;		/**< Output for log messages */
 static char *logname = NULL;
 
@@ -83,7 +83,7 @@ void sci_log(const loglevel_t loglevel, const char *const fmt, ...)
  *
  * @param verbosity minimum level for log level
  */
-void sci_log_set_verbosity(const int verbosity)
+void sci_log_set_verbosity(loglevel_t verbosity)
 {
 	logverbosity = verbosity;
 }

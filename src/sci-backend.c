@@ -1,4 +1,5 @@
 #include "sci-backend.h"
+#include "scipaper.h"
 
 #include <glib.h>
 #include <stdbool.h>
@@ -11,13 +12,44 @@ struct SciBackend
 	char* (*get_document_text)(const DocumentMeta* meta, void* user_data);
 	unsigned char* (*get_document_pdf_data)(const DocumentMeta* meta, void* user_data);
 	int id;
-	char* name;
+	const BackendInfo* backend_info;
 	void* user_data;
 };
 
 static GSList *backends;
+static const BackendInfo** backendsArray;
 
-int sci_plugin_register(const char* name, DocumentMeta** (*fill_meta_in)(const DocumentMeta* meta, size_t* count, size_t maxCount, void* user_data),
+const BackendInfo** sci_get_all_backends(void)
+{
+	if(!backendsArray)
+	{
+		backendsArray = g_malloc(sizeof(*backendsArray)*g_slist_length(backends));
+		size_t i = 0;
+		for(GSList* element = backends; element; element = element->next)
+		{
+			struct SciBackend* backend = (struct SciBackend*)element->data;
+			backendsArray[i] = backend->backend_info;
+			++i;
+		}
+	}
+	return backendsArray;
+}
+
+const BackendInfo* sci_get_backend_info(int id)
+{
+	for(GSList* element = backends; element; element = element->next)
+	{
+		struct SciBackend* backend = (struct SciBackend*)element->data;
+		if(backend->id == id)
+		{
+			return backend->backend_info;
+		}
+	}
+	return NULL;
+}
+
+int sci_plugin_register(const BackendInfo* backend_info,
+						DocumentMeta** (*fill_meta_in)(const DocumentMeta* meta, size_t* count, size_t maxCount, void* user_data),
 						char* (*get_document_text_in)(const DocumentMeta* meta, void* user_data),
 						unsigned char* (*get_document_pdf_data_in)(const DocumentMeta* meta, void* user_data), void* user_data)
 {
@@ -29,10 +61,16 @@ int sci_plugin_register(const char* name, DocumentMeta** (*fill_meta_in)(const D
 	backend->fill_meta = fill_meta_in;
 	backend->get_document_text = get_document_text_in;
 	backend->get_document_pdf_data = get_document_pdf_data_in;
-	backend->name = g_strdup(name);
+	backend->backend_info = backend_info;
 	backend->user_data = user_data;
 
 	backends = g_slist_prepend(backends, backend);
+
+	if(backendsArray)
+	{
+		g_free(backendsArray);
+		backendsArray = NULL;
+	}
 	return id_counter;
 }
 
@@ -48,13 +86,18 @@ void sci_plugin_unregister(int id)
 	if (!element)
 		sci_log(LL_WARN, "Trying to remove non-existing comm backend with id %d", id);
 
-	g_free(((struct SciBackend*)(element->data))->name);
 	g_free(element->data);
 
 	backends = g_slist_remove(backends, element->data);
+
+	if(backendsArray)
+	{
+		g_free(backendsArray);
+		backendsArray = NULL;
+	}
 }
 
-DocumentMeta** sci_fill_meta(DocumentMeta* meta, size_t* count, size_t maxCount)
+DocumentMeta** sci_fill_meta(const DocumentMeta* meta, size_t* count, size_t maxCount)
 {
 	for(GSList *element = backends; element; element = element->next)
 	{

@@ -3,12 +3,23 @@
 #include <stdbool.h>
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
 Api for use by libscipaper users.
 * @defgroup API User API
 * This api allows you to lookup documents, find thair full texts and grab pdf files.
 * @{
 */
+
+/**
+ * @brief Sets the verbosity of sicpaper output
+ *
+ * @param verbosity The versboity to set
+ */
+void sci_log_set_verbosity(loglevel_t verbosity);
 
 /**
  * @brief Takes a DocumentMeta and trys to find maxCount documents that match the fileds set in the
@@ -83,6 +94,21 @@ unsigned char* sci_get_document_pdf_data(const DocumentMeta* meta);
 bool sci_save_document_to_pdf(const DocumentMeta* meta, const char* fileName);
 
 /**
+ * @brief gives you an array of BackendInfo structs describeing eatch backend registered with libscipaper
+ *
+ * @return an array of BackendInfo structs describeing eatch backend
+ */
+const BackendInfo** sci_get_all_backends(void);
+
+/**
+ * @brief gives you a BackendInfo struct describeing the backend with the id id
+ *
+ * @param id the id of the backend you want information on
+ * @return a const BackendInfo struct containing information on the requested backend, owned by libscipaper, do not free
+ */
+const BackendInfo* sci_get_backend_info(int id);
+
+/**
  * @brief gives you the name of the backend with id
  * @param id the id of the backend you want the name for
  * @return a const string with the name of the backend, has static lifetime and shal not be freed
@@ -107,3 +133,7 @@ void sci_paper_exit(void);
 ....
 * @}
 */
+
+#ifdef __cplusplus
+}
+#endif

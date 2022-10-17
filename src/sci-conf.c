@@ -294,45 +294,53 @@ static bool sci_conf_is_ini_file(const char *filename)
 bool sci_conf_init(const char* fileName)
 {
 	sci_conf_file_count = fileName ? 2 : 1;
+	size_t index = 0;
 
 	conf_files = calloc(sci_conf_file_count, sizeof(*conf_files));
 	
-	conf_files[0].filename = g_strdup(G_STRINGIFY(SCI_SYSCONF_INI));
-	conf_files[0].path     = g_strconcat(G_STRINGIFY(SCI_SYSCONF_DIR), "/", G_STRINGIFY(SCI_SYSCONF_INI), NULL);
-	gpointer main_conf_file = sci_conf_read_conf_file(conf_files[0].path);
-	if (main_conf_file == NULL)
+	conf_files[index].filename = g_strdup(G_STRINGIFY(SCI_SYSCONF_INI));
+	conf_files[index].path     = g_strconcat(G_STRINGIFY(SCI_SYSCONF_DIR), "/", G_STRINGIFY(SCI_SYSCONF_INI), NULL);
+	gpointer main_conf_file = sci_conf_read_conf_file(conf_files[index].path);
+	if(main_conf_file == NULL)
 	{
 		sci_log(LL_ERR, "sci-conf: failed to open main config file %s %s",
-				conf_files[0].path, g_strerror(errno));
-		g_free(conf_files[0].filename);
-		g_free(conf_files[0].path);
-		free(conf_files);
-		conf_files = NULL;
-		return FALSE;
+				conf_files[index].path, g_strerror(errno));
+		g_free(conf_files[index].filename);
+		g_free(conf_files[index].path);
+		--sci_conf_file_count;
 	}
-	conf_files[0].keyfile = main_conf_file;
+	else
+	{
+		conf_files[index].keyfile = main_conf_file;
+		++index;
+	}
 
-	if(fileName && sci_conf_is_ini_file(fileName))
+	if(fileName)
 	{
-		conf_files[1].filename = g_strdup(fileName);
-		conf_files[1].path     = g_strdup(fileName);
-		gpointer application_conf_file = sci_conf_read_conf_file(conf_files[1].path);
-		if (application_conf_file == NULL)
+		if(sci_conf_is_ini_file(fileName))
 		{
-			sci_log(LL_ERR, "sci-conf: failed to open main config file %s %s",
-					conf_files[1].path, g_strerror(errno));
-			g_free(conf_files[1].filename);
-			g_free(conf_files[1].path);
-			free(conf_files);
-			conf_files = NULL;
-			return FALSE;
+			conf_files[index].filename = g_strdup(fileName);
+			conf_files[index].path     = g_strdup(fileName);
+			gpointer application_conf_file = sci_conf_read_conf_file(conf_files[1].path);
+			if (application_conf_file == NULL)
+			{
+				sci_log(LL_ERR, "sci-conf: failed to open main config file %s %s",
+						conf_files[index].path, g_strerror(errno));
+				g_free(conf_files[index].filename);
+				g_free(conf_files[index].path);
+				--sci_conf_file_count;
+			}
+			conf_files[index].keyfile = application_conf_file;
 		}
-		conf_files[1].keyfile = application_conf_file;
+		else
+		{
+			--sci_conf_file_count;
+			sci_log(LL_ERR, "sci-conf: conf file %s is not an ini file!", fileName);
+		}
 	}
-	else if(!sci_conf_is_ini_file(fileName))
-	{
-		sci_log(LL_ERR, "sci-conf: conf file %s is not an ini file!", fileName);
-	}
+
+	if(sci_conf_file_count == 0)
+		return FALSE;
 	
 	for (size_t i = 0; i < sci_conf_file_count; ++i)
 		sci_log(LL_DEBUG, "sci-conf: using conf file %lu: %s", (unsigned long)i, conf_files[i].filename);

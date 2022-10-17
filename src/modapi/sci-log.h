@@ -18,6 +18,8 @@
 
 #include <syslog.h>	/* LOG_DAEMON, LOG_USER */
 
+#include "types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,20 +43,8 @@ extern "C" {
 
 /**@}*/
 
-/** Severity of loglevels */
-typedef enum {
-	LL_NONE = 0,			/**< No logging at all */
-	LL_CRIT = 1,			/**< Critical error */
-	LL_ERR = 2,			/**< Error */
-	LL_WARN = 3,			/**< Warning */
-	LL_DEFAULT = LL_WARN,		/**< Default log level */
-	LL_INFO = 4,			/**< Informational message */
-	LL_DEBUG = 5			/**< Useful when debugging */
-} loglevel_t;
-
 void sci_log(const loglevel_t loglevel, const char *const fmt, ...)
 	__attribute__((format(printf, 2, 3)));
-void sci_log_set_verbosity(const int verbosity);
 void sci_log_open(const char *const name, const int facility, const int type);
 void sci_log_close(void);
 
