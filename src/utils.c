@@ -28,7 +28,7 @@ GString* buildQuery(const GSList* list)
 		const struct Pair *pair = element->data;
 		g_string_append(string, pair->key);
 		g_string_append_c(string, '=');
-		char* escapedValue = g_uri_escape_string(pair->value, NULL, false);
+		char* escapedValue = g_uri_escape_string(pair->value, ",", false);
 		g_string_append(string, escapedValue);
 		if(element->next)
 			g_string_append_c(string, '&');
@@ -43,7 +43,7 @@ static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *use
 	return size * nmemb;
 }
 
-GString* wgetUrl(const char* url)
+GString* wgetUrl(const char* url, int timeout)
 {
 	CURL* curlContext = curl_easy_init();
 	if(!curlContext)
@@ -62,14 +62,18 @@ GString* wgetUrl(const char* url)
 	assert(ret == CURLE_OK);
 	ret = curl_easy_setopt(curlContext, CURLOPT_WRITEFUNCTION, writeCallback);
 	assert(ret == CURLE_OK);
-	ret = curl_easy_setopt(curlContext, CURLOPT_WRITEDATA, &buffer);
+	ret = curl_easy_setopt(curlContext, CURLOPT_WRITEDATA, buffer);
 	assert(ret == CURLE_OK);
-	ret = curl_easy_setopt(curlContext, CURLOPT_SERVER_RESPONSE_TIMEOUT, 10);
+	ret = curl_easy_setopt(curlContext, CURLOPT_TIMEOUT, timeout);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_SERVER_RESPONSE_TIMEOUT, timeout/3);
+	assert(ret == CURLE_OK);
 	ret = curl_easy_perform(curlContext);
 	curl_easy_cleanup(curlContext);
 	if(ret != CURLE_OK)
 	{
-		sci_log(LL_ERR, "Could not load from %s curl retuned errno %i message: %s", url, ret, errorBuffer);
+		sci_log(LL_ERR, "Could not load from %s curl retuned errno %i\n%s", url, ret, errorBuffer);
+		g_string_free(buffer, true);
 		return NULL;
 	}
 
