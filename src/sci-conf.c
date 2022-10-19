@@ -174,11 +174,17 @@ gchar *sci_conf_get_string(const gchar *group, const gchar *key,
 
 	tmp = g_key_file_get_string(keyfileptr, group, key, &error);
 
-	if (error != NULL)
+	if(tmp && strlen(tmp) == 0)
+	{
+		g_free(tmp);
+		tmp = NULL;
+	}
+
+	if(tmp == NULL || error != NULL)
 	{
 		sci_log(LL_DEBUG, "sci-conf: "
-			"Could not get config key %s/%s; %s; %s%s%s",
-			group, key, error->message,
+			"Could not get config key %s/%s, %s, %s%s%s",
+			group, key, error ? error->message : "value is empty",
 			defaultval ? "defaulting to `" : "no default set",
 			defaultval ? defaultval : "",
 			defaultval ? "'" : "");
