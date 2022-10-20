@@ -193,11 +193,12 @@ static DocumentMeta* cf_parse_work_json(const nx_json* json, const DocumentMeta*
 
 static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, struct CrPriv* priv)
 {
-	GString* url = cf_create_url(priv, CROSSREF_METHOD_WORKS, NULL);
+	GString* url = g_string_new(CROSSREF_URL_DOMAIN);
+	g_string_append(url, CROSSREF_METHOD_WORKS);
 	g_string_append_c(url, '/');
 	g_string_append(url, meta->doi);
 
-	sci_module_log(LL_DEBUG, "__func__: grabbing %s", url->str);
+	sci_module_log(LL_DEBUG, "%s: grabbing %s", __func__, url->str);
 	GString* jsonText = wgetUrl(url->str, priv->timeout);
 	g_string_free(url, true);
 
@@ -207,9 +208,11 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	if(jsonText)
 	{
 		const nx_json* json = nx_json_parse_utf8(jsonText->str);
-		const nx_json* message = cf_get_message(nx_json_parse_utf8(jsonText->str), "work");
+		const nx_json* message = cf_get_message(json, "work");
 		if(message)
 			filledMeta = cf_parse_work_json(message, meta, priv);
+		else
+			sci_module_log(LL_WARN, "%s: got invalid entry without a message node", __func__);
 		nx_json_free(json);
 	}
 
@@ -217,8 +220,12 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	{
 		filledMeta->backendId = priv->id;
 		*count = 1;
-		DocumentMeta** ret = g_malloc0(sizeof(*ret));
+		ret = g_malloc0(sizeof(*ret));
 		ret[0] = filledMeta;
+	}
+	else
+	{
+		sci_module_log(LL_WARN, "%s: failed to parse message", __func__);
 	}
 
 	if(jsonText)

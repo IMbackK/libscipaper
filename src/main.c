@@ -36,11 +36,11 @@ void grab_wallauer()
 
 void try_doi()
 {
-	DocumentMeta* meta = sci_find_by_doi("10.1146/annurev.anthro.27.1.301");
+	DocumentMeta* meta = sci_find_by_doi("10.1002/ange.19410544309");
 
 	if(meta)
 	{
-		sci_log(LL_INFO, "Found document for 10.1146/annurev.anthro.27.1.301");
+		sci_log(LL_INFO, "Found document for 10.1002/ange.19410544309");
 		document_meta_print(meta, true);
 	}
 	else

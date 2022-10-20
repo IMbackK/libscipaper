@@ -14,7 +14,7 @@ target_include_directories(crossref PRIVATE ${MODULE_INCLUDE_DIRS})
 set_target_properties(crossref PROPERTIES COMPILE_FLAGS ${COMMON_FLAGS})
 install(TARGETS crossref DESTINATION ${SCI_MODULE_DIR})
 
-add_library(core SHARED core)
+add_library(core SHARED core.c)
 target_link_libraries(core ${COMMON_LIBRARIES})
 target_include_directories(core SYSTEM PRIVATE ${COMMON_INCLUDE_DIRS})
 target_include_directories(core PRIVATE ${MODULE_INCLUDE_DIRS})
