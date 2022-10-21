@@ -78,20 +78,28 @@ DocumentMeta** sci_find_by_journal(const char* jornal, size_t* count, size_t max
 char* sci_get_document_text(const DocumentMeta* meta);
 
 /**
- * @brief Tries to get the pdf data of a certain document. Will give only the text of the first document that matches meta
+ * @brief Tries to get the pdf data of a certain document. Will give only the pdf of the first document that matches meta
  *
 * @param meta A DocumentMeta struct with at least one value set if backendId == 0 all backends will be checked until one can indentify the document otherwise the backend with the id backendId will be used
  * @return Raw data of the pdf document
  */
-unsigned char* sci_get_document_pdf_data(const DocumentMeta* meta);
+PdfData* sci_get_document_pdf_data(const DocumentMeta* meta);
 
 /**
  * @brief Tries to get save the pdf of a certain document to disk. Will only save the first document that matches meta
  *
-* @param meta A DocumentMeta struct with at least one value set if backendId == 0 all backends will be checked until one can indentify the document otherwise the backend with the id backendId will be used
+ * @param data A PdfData struct filled by sci_get_document_pdf_data
  * @return Raw data of the pdf document
  */
-bool sci_save_document_to_pdf(const DocumentMeta* meta, const char* fileName);
+bool sci_save_pdf_to_file(const PdfData* data, const char* fileName);
+
+/**
+ * @brief Saves the pdf of a certain document to disk. Will only save the first document that matches meta
+ *
+* @param meta A DocumentMeta struct with at least one value set if backendId == 0 all backends will be checked until one can indentify the document otherwise the backend with the id backendId will be used
+ * @return true on sucess, false on failure
+ */
+bool sci_save_document_to_file(const DocumentMeta* meta, const char* fileName);
 
 /**
  * @brief gives you an array of BackendInfo structs describeing eatch backend registered with libscipaper

@@ -339,5 +339,6 @@ void sci_module_exit(void* data)
 {
 	struct CrPriv* priv = data;
 	sci_plugin_unregister(priv->id);
+	g_free(priv->email);
 	g_free(priv);
 }

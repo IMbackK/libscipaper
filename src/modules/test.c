@@ -60,7 +60,7 @@ char* test_get_document_text_in(const DocumentMeta* meta, void* userData)
 	}
 }
 
-unsigned char* test_get_document_pdf_data_in(const DocumentMeta* meta, void* userData)
+static PdfData* test_get_document_pdf_data_in(const DocumentMeta* meta, void* userData)
 {
 	(void)meta;
 	(void)userData;

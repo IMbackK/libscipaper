@@ -34,7 +34,7 @@ typedef struct _BackendInfo {
 } BackendInfo;
 
 /**
- * @brief This struct contains the metadata of a paper
+ * @brief This struct contains the metadata of a paper, must be created via document_meta_new() and freed via document_meta_free()
  */
 typedef struct _DocumentMeta {
 	//To be filled by user for query or by backend as a result
@@ -51,7 +51,7 @@ typedef struct _DocumentMeta {
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
 	char* downloadUrl; /**< Url where the full text of the document can be found */
 	char* abstract; /**< abstract of the document */
-	char* searchText;
+	char* searchText; /**< freeform text to search for in backends */
 	bool hasFullText; /**< a hint that docuement has full text avialable */
 
 	int backendId; /**< The id of the backend that found the document, or the id that shal be tried to find the document */
@@ -96,6 +96,15 @@ void document_meta_print(const DocumentMeta* meta, bool info);
  * @param meta The DocumentMeta array to free
  */
 void document_meta_free_list(DocumentMeta** meta, size_t length);
+
+typedef struct _PdfData
+{
+	unsigned char* data;
+	size_t length;
+	DocumentMeta *meta;
+} PdfData;
+
+void pdf_data_free(PdfData* data);
 
 /**@}*/
 

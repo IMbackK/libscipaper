@@ -86,3 +86,10 @@ void document_meta_free_list(DocumentMeta** meta, size_t length)
 		g_free(meta);
 	}
 }
+
+void pdf_data_free(PdfData* data)
+{
+	document_meta_free(data->meta);
+	g_free(data->data);
+	g_free(data);
+}

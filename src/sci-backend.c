@@ -10,7 +10,7 @@ struct SciBackend
 {
 	DocumentMeta** (*fill_meta)(const DocumentMeta* meta, size_t* count, size_t maxCount, void* user_data);
 	char* (*get_document_text)(const DocumentMeta* meta, void* user_data);
-	unsigned char* (*get_document_pdf_data)(const DocumentMeta* meta, void* user_data);
+	PdfData* (*get_document_pdf_data)(const DocumentMeta* meta, void* user_data);
 	int id;
 	const BackendInfo* backend_info;
 	void* user_data;
@@ -58,7 +58,7 @@ size_t sci_get_backend_count(void)
 int sci_plugin_register(const BackendInfo* backend_info,
 						DocumentMeta** (*fill_meta_in)(const DocumentMeta* meta, size_t* count, size_t maxCount, void* user_data),
 						char* (*get_document_text_in)(const DocumentMeta* meta, void* user_data),
-						unsigned char* (*get_document_pdf_data_in)(const DocumentMeta* meta, void* user_data), void* user_data)
+						PdfData* (*get_document_pdf_data_in)(const DocumentMeta* meta, void* user_data), void* user_data)
 {
 	static int id_counter = 0;
 
@@ -125,7 +125,7 @@ DocumentMeta** sci_fill_meta(const DocumentMeta* meta, size_t* count, size_t max
 	return NULL;
 }
 
-char* get_document_text(DocumentMeta* meta)
+char* sci_get_document_text(const DocumentMeta* meta)
 {
 	for(GSList *element = backends; element; element = element->next)
 	{
@@ -141,14 +141,14 @@ char* get_document_text(DocumentMeta* meta)
 	return NULL;
 }
 
-unsigned char* get_document_pdf_data(DocumentMeta* meta)
+PdfData* sci_get_document_pdf_data(const DocumentMeta* meta)
 {
 	for(GSList *element = backends; element; element = element->next)
 	{
 		struct SciBackend* backend = element->data;
 		if(backend->get_document_pdf_data && (meta->backendId == backend->id || meta->backendId == 0))
 		{
-			unsigned char* data = backend->get_document_pdf_data(meta, backend->user_data);
+			PdfData* data = backend->get_document_pdf_data(meta, backend->user_data);
 			if(data)
 				return data;
 		}

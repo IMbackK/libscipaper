@@ -18,7 +18,7 @@ Api for use by libscipaper modules.
  */
 int sci_plugin_register(const BackendInfo* backend_info, DocumentMeta** (*fill_meta_in)(const DocumentMeta*, size_t*, size_t, void*),
 						char* (*get_document_text_in)(const DocumentMeta*, void*),
-						unsigned char* (*get_document_pdf_data_in)(const DocumentMeta*, void*), void* user_data);
+						PdfData* (*get_document_pdf_data_in)(const DocumentMeta*, void*), void* user_data);
 
 /**
  * @brief Unregisters a backend, must be called before the backend exits
