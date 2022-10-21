@@ -50,6 +50,27 @@ const BackendInfo* sci_get_backend_info(int id)
 	return NULL;
 }
 
+const char* sci_get_backend_name(int id)
+{
+	const BackendInfo* backend = sci_get_backend_info(id);
+	if(!backend)
+		return NULL;
+	return backend->name;
+}
+
+int sci_backend_get_id_by_name(const char* name)
+{
+	for(GSList* element = backends; element; element = element->next)
+	{
+		struct SciBackend* backend = (struct SciBackend*)element->data;
+		if(g_str_equal(backend->backend_info->name, name))
+		{
+			return backend->id;
+		}
+	}
+	return 0;
+}
+
 size_t sci_get_backend_count(void)
 {
 	return g_slist_length(backends);

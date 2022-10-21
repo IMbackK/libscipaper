@@ -109,12 +109,20 @@ bool sci_save_document_to_file(const DocumentMeta* meta, const char* fileName);
 const BackendInfo** sci_get_all_backends(void);
 
 /**
- * @brief gives you a BackendInfo struct describeing the backend with the id id
+ * @brief gives you a BackendInfo struct describeing the backend with the id
  *
  * @param id the id of the backend you want information on
  * @return a const BackendInfo struct containing information on the requested backend, owned by libscipaper, do not free
  */
 const BackendInfo* sci_get_backend_info(int id);
+
+/**
+ * @brief gives you the id of the backend with a given name
+ *
+ * @param name the name of the backend
+ * @return the id of the backend or 0 if it is not available
+ */
+int sci_backend_get_id_by_name(const char* name);
 
 /**
  * @brief gives you the name of the backend with id
