@@ -22,6 +22,9 @@
 #include "sci-backend.h"
 #include "types.h"
 #include "scipaper.h"
+#include "sci-conf.h"
+#include "utils.h"
+#include "nxjson.h"
 
 /** Module name every module is required to have this*/
 #define MODULE_NAME		"core"
@@ -32,42 +35,288 @@ G_MODULE_EXPORT BackendInfo backend_info = {
 	.name = MODULE_NAME,
 };
 
-DocumentMeta** core_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+#define CORE_API_BASE_URL "https://api.core.ac.uk/v3/"
+#define CORE_METHOD_SEARCH_WORKS "search/works/"
+#define CORE_METHOD_OUTPUTS "outputs/"
+
+struct CorePriv
 {
-	(void)meta;
-	(void)maxCount;
-	(void)userData;
-	*count = 1;
-	DocumentMeta** ret = g_malloc0(sizeof(*ret));
-	ret[0] = document_meta_new();
-	return ret;
+	char* apiKey;
+	int rateLimit;
+	int id;
+	int timeout;
+};
+
+struct CoreData
+{
+	char* fullText;
+	long long int id;
+};
+
+static void core_free_data(void* data)
+{
+	struct CoreData* coredata = data;
+	g_free(coredata->fullText);
+	g_free(coredata);
 }
 
-char* core_get_document_text_in(const DocumentMeta* meta, void* userData)
+static void* core_copy_data(void* data)
 {
-	size_t count;
-	(void)userData;
+	struct CoreData* coreData = data;
+	struct CoreData* copy = g_malloc0(sizeof(*copy));
+	copy->fullText = g_strdup(coreData->fullText);
+	copy->id = coreData->id;
+	return copy;
+}
+
+static GString* core_create_url(struct CorePriv *priv, const char* method, GSList* queryList)
+{
+	GString* url = g_string_new(CORE_API_BASE_URL);
+	g_string_append(url, method);
+	queryList = g_slist_prepend(queryList, pair_new("apiKey", priv->apiKey));
+
+	GString* query = buildQuery(queryList);
+	g_string_append(url, query->str);
+	g_string_free(query, true);
+	g_slist_free_full(queryList, (void(*)(void*))pair_free);
+
+	return url;
+}
+
+long long int core_get_document_id(const nx_json* idArray)
+{
+	if(idArray->type != NX_JSON_ARRAY)
+		return 0;
+
+	for(size_t i = 0; i < idArray->length; ++i)
+	{
+		const nx_json* identifier = nx_json_item(idArray, i);
+		if(g_str_equal(nx_json_get(identifier, "type")->text_value, "CORE_ID"))
+			return g_ascii_strtoll(nx_json_get(identifier, "identifier")->text_value, NULL, 10);
+	}
+
+	return 0;
+}
+
+static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePriv* priv)
+{
+	DocumentMeta *result = document_meta_new();
+	result->backendId = priv->id;
+	result->hasFullText = true;
+
+	struct CoreData* coreData = g_malloc0(sizeof(*coreData));
+	coreData->fullText = g_strdup(nx_json_get(item, "fullText")->text_value);
+	coreData->id = core_get_document_id(nx_json_get(item, "identifiers"));
+	coreData->fullText = g_strdup(nx_json_get(item, "fullText")->text_value);
+	result->backendData = coreData;
+	result->backend_data_free_fn = &core_free_data;
+	result->backend_data_copy_fn = &core_copy_data;
+
+	const nx_json* authorArray = nx_json_get(item, "authors");
+	GString* authorString = g_string_new(NULL);
+	for(size_t i = 0; i < authorArray->length; ++i)
+	{
+		const nx_json* author = nx_json_item(authorArray, i);
+		const nx_json* name = nx_json_get(author, "name");
+		if(name->type == NX_JSON_STRING)
+			g_string_append(authorString, name->text_value);
+		if(i < authorArray->length-1)
+			g_string_append(authorString, ", ");
+	}
+	result->author = authorString->str;
+	g_string_free(authorString, false);
+
+	result->abstract = g_strdup(nx_json_get(item, "abstract")->text_value);
+	result->doi = g_strdup(nx_json_get(item, "doi")->text_value);
+	result->title = g_strdup(nx_json_get(item, "title")->text_value);
+	result->publisher = g_strdup(nx_json_get(item, "publisher")->text_value);
+	result->year = nx_json_get(item, "yearPublished")->int_value;
+
+	return result;
+}
+
+DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+{
+	struct CorePriv* priv = userData;
+
+	DocumentMeta** results = NULL;
+
+	if(meta->author || meta->title || meta->keywords || meta->searchText)
+	{
+		char* intStr = g_strdup_printf("%zu", maxCount);
+		GSList* queryList = g_slist_prepend(NULL, pair_new("limit", intStr));
+		g_free(intStr);
+		queryList = g_slist_prepend(queryList, pair_new("scroll", "true"));
+		queryList = g_slist_prepend(queryList, pair_new("offset", "0"));
+		queryList = g_slist_prepend(queryList, pair_new("stats", "false"));
+
+		GString* searchString = g_string_new(NULL);
+		if(meta->author)
+		{
+			g_string_append(searchString, "authors:\"");
+			g_string_append(searchString, meta->author);
+			g_string_append(searchString, "\"+");
+		}
+		if(meta->title)
+		{
+			g_string_append(searchString, "title:\"");
+			g_string_append(searchString, meta->title);
+			g_string_append(searchString, "\"+");
+		}
+		if(meta->keywords)
+		{
+			char** tokens = g_str_tokenize_and_fold(meta->title, NULL, NULL);
+			g_string_append(searchString, "title:\"");
+			while(*tokens)
+			{
+				g_string_append(searchString, *tokens);
+				g_free(*tokens);
+				++tokens;
+			}
+			g_free(tokens);
+			g_string_append(searchString, meta->title);
+			g_string_append(searchString, "\"+");
+
+		}
+		if(meta->searchText)
+		{
+			g_string_append_c(searchString, '\"');
+			g_string_append(searchString, meta->searchText);
+			g_string_append(searchString, "\"+");
+		}
+		g_string_truncate(searchString, searchString->len-1);
+		queryList = g_slist_prepend(queryList, pair_new("q", searchString->str));
+		g_string_free(searchString, true);
+
+		GString* url = core_create_url(priv, CORE_METHOD_SEARCH_WORKS, queryList);
+		sci_module_log(LL_DEBUG, "%s: getting url string: %s", __func__, url->str);
+		GString* jsonText = wgetUrl(url->str, priv->timeout);
+		g_string_free(url, true);
+		if(!jsonText)
+			return results;
+
+		const nx_json* json = nx_json_parse_utf8(jsonText->str);
+		const nx_json* resutlsArray = nx_json_get(json, "results");
+		if(resutlsArray->type != NX_JSON_ARRAY)
+		{
+			sci_module_log(LL_WARN, "%s: invalid response no results entry", __func__);
+			nx_json_free(json);
+			g_string_free(jsonText, true);
+			return results;
+		}
+		*count = (size_t)resutlsArray->length;
+
+		results = g_malloc0(sizeof(*results)*(*count));
+
+		for(size_t i = 0; i < *count; ++i)
+		{
+			const nx_json* item = nx_json_item(resutlsArray, i);
+			results[i] = core_parse_document_meta(item, priv);
+		}
+
+		nx_json_free(json);
+		g_string_free(jsonText, true);
+	}
+
+	return results;
+}
+
+char* core_get_document_text(const DocumentMeta* meta, void* userData)
+{
+	struct CorePriv* priv = userData;
+
+	if(meta->backendId == priv->id && meta->backendData)
+	{
+		struct CoreData* data = meta->backendData;
+		return g_strdup(data->fullText);
+	}
+	else
+	{
+		size_t count;
+		DocumentMeta** metas = core_fill_meta(meta, &count, 1, priv);
+		if(!metas)
+		{
+			return NULL;
+		}
+		else
+		{
+			char* text = g_strdup(((struct CoreData*)metas[0]->backendData)->fullText);
+			document_meta_free_list(metas, count);
+			return text;
+		}
+	}
+
 	return NULL;
 }
 
-unsigned char* core_get_document_pdf_data_in(const DocumentMeta* meta, void* userData)
+static PdfData* core_get_document_pdf_data(const DocumentMeta* meta, void* userData)
 {
-	(void)meta;
-	(void)userData;
-	return NULL;
-}
+	struct CorePriv* priv = userData;
+	DocumentMeta* pdfMeta;
 
+	if(meta->backendId == priv->id && meta->backendData)
+	{
+		pdfMeta = document_meta_copy(meta);
+	}
+	else
+	{
+		size_t count;
+		DocumentMeta** metas = core_fill_meta(meta, &count, 1, priv);
+		if(!metas)
+			return NULL;
+		else
+			pdfMeta = document_meta_copy(metas[0]);
+	}
+
+	struct CoreData* coreData = pdfMeta->backendData;
+	char* idStr = g_strdup_printf("%lli", coreData->id);
+	GString *getUrl = core_create_url(priv, CORE_METHOD_OUTPUTS, NULL);
+	g_string_append(getUrl, idStr);
+	g_string_append(getUrl, "/download");
+	g_free(idStr);
+
+	GString *response = wgetUrl(getUrl->str, priv->timeout);
+
+	PdfData* pdfData = NULL;
+	if(response)
+	{
+		pdfData = g_malloc0(sizeof(*pdfData));
+		pdfData->length = response->len;
+		pdfData->data = g_memdup2(response->str, response->len);
+		pdfData->meta = document_meta_copy(pdfMeta);
+	}
+
+	g_string_free(getUrl, true);
+	g_string_free(response, true);
+	document_meta_free(pdfMeta);
+
+	return pdfData;
+}
 
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);
 const gchar *sci_module_init(void** data)
 {
-	data = GINT_TO_POINTER(sci_plugin_register(&backend_info, core_fill_meta_in, core_get_document_text_in, core_get_document_pdf_data_in, NULL));
+	struct CorePriv* priv = g_malloc0(sizeof(*priv));
+
+	priv->rateLimit = sci_conf_get_int("Core", "RateLimit", 10, NULL);
+	priv->apiKey = sci_conf_get_string("Core", "ApiKey", NULL, NULL);
+	priv->timeout = sci_conf_get_int("Core", "Timeout", 20, NULL);
+
+	*data = priv;
+
+	if(!priv->apiKey)
+		return "This module can not work without an api key, you must set this key in Core/ApiKey in the config file";
+
+	priv->id = sci_plugin_register(&backend_info, core_fill_meta, core_get_document_text, core_get_document_pdf_data, priv);
+
 	return NULL;
 }
 
 G_MODULE_EXPORT void sci_module_exit(void* data);
 void sci_module_exit(void* data)
 {
-	sci_plugin_unregister(GPOINTER_TO_INT(data));
-	(void)data;
+	struct CorePriv* priv = data;
+	sci_plugin_unregister(priv->id);
+	g_free(priv->apiKey);
+	g_free(priv);
 }
