@@ -97,13 +97,20 @@ void document_meta_print(const DocumentMeta* meta, bool info);
  */
 void document_meta_free_list(DocumentMeta** meta, size_t length);
 
+/**
+ * @brief This struct contains the raw data of a pdf document
+ */
 typedef struct _PdfData
 {
-	unsigned char* data;
-	size_t length;
-	DocumentMeta *meta;
+	unsigned char* data; /**< Raw data */
+	size_t length; /**< Length of data */
+	DocumentMeta* meta; /**< Meta data of the document that the pdf belongs to */
 } PdfData;
 
+/**
+ * @brief Frees a PdfData struct
+ * @param data The PdfData struct to free
+ */
 void pdf_data_free(PdfData* data);
 
 /**@}*/
