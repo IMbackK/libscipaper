@@ -23,7 +23,7 @@ const BackendInfo** sci_get_all_backends(void)
 {
 	if(!backendsArray)
 	{
-		backendsArray = g_malloc(sizeof(*backendsArray)*g_slist_length(backends));
+		backendsArray = g_malloc(sizeof(*backendsArray)*(g_slist_length(backends)+1));
 		size_t i = 0;
 		for(GSList* element = backends; element; element = element->next)
 		{
@@ -31,6 +31,8 @@ const BackendInfo** sci_get_all_backends(void)
 			backendsArray[i] = backend->backend_info;
 			++i;
 		}
+
+		backendsArray[i] = NULL;
 	}
 	return backendsArray;
 }
@@ -46,6 +48,11 @@ const BackendInfo* sci_get_backend_info(int id)
 		}
 	}
 	return NULL;
+}
+
+size_t sci_get_backend_count(void)
+{
+	return g_slist_length(backends);
 }
 
 int sci_plugin_register(const BackendInfo* backend_info,
@@ -106,7 +113,11 @@ DocumentMeta** sci_fill_meta(const DocumentMeta* meta, size_t* count, size_t max
 		{
 			DocumentMeta** newMeta = backend->fill_meta(meta, count, maxCount, backend->user_data);
 			if(newMeta)
+			{
+				for(size_t i = 0; i < *count; ++i)
+					newMeta[i]->compleatedLookup = true;
 				return newMeta;
+			}
 		}
 	}
 	sci_log(LL_WARN, "Unable to fill meta %s", __func__);

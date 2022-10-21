@@ -115,6 +115,13 @@ const BackendInfo* sci_get_backend_info(int id);
  */
 const char* sci_get_backend_name(int id);
 
+
+/**
+ * @brief gives you the nummber of backends currently registered
+ * @return the number of backends currently registered
+ */
+size_t sci_get_backend_count(void);
+
 /**
  * @brief Inits libscipaper, this function must be your first call to libscipaper
  *
