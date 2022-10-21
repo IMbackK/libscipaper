@@ -1,7 +1,7 @@
 #include "types.h"
 #include <glib.h>
 #include <stdio.h>
-#include <string.h>
+#include <assert.h>
 #include "sci-log.h"
 
 DocumentMeta* document_meta_new(void)
@@ -24,16 +24,18 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta)
 	copy->journal = g_strdup(meta->journal);
 	copy->issn = g_strdup(meta->issn);
 	copy->keywords = g_strdup(meta->keywords);
-	copy->pdfUrl = g_strdup(meta->pdfUrl);
+	copy->downloadUrl = g_strdup(meta->downloadUrl);
 	copy->abstract = g_strdup(meta->abstract);
+	copy->searchText = g_strdup(meta->searchText);
 	copy->backendId = meta->backendId;
 	copy->hasFullText = meta->hasFullText;
 	if(meta->backendData)
 	{
-		copy->backendData = g_malloc0(meta->backendDataLength);
-		memcpy(copy->backendData, meta->backendData, meta->backendDataLength);
+		assert(meta->backend_data_copy_fn);
+		copy->backendData = meta->backend_data_copy_fn(meta->backendData);
 	}
-	copy->backendDataLength = meta->backendDataLength;
+	copy->backend_data_free_fn = meta->backend_data_free_fn;
+	copy->backend_data_copy_fn = meta->backend_data_copy_fn;
 	copy->compleatedLookup = meta->compleatedLookup;
 
 	return copy;
@@ -53,9 +55,16 @@ void document_meta_free(DocumentMeta* meta)
 		g_free(meta->journal);
 		g_free(meta->issn);
 		g_free(meta->keywords);
-		g_free(meta->pdfUrl);
+		g_free(meta->downloadUrl);
 		g_free(meta->abstract);
-		g_free(meta->backendData);
+
+		if(meta->backendData)
+		{
+			assert(meta->backend_data_free_fn);
+			meta->backend_data_free_fn(meta->backendData);
+		}
+
+		g_free(meta->searchText);
 		g_free(meta);
 	}
 }

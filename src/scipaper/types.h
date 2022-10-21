@@ -37,6 +37,7 @@ typedef struct _BackendInfo {
  * @brief This struct contains the metadata of a paper
  */
 typedef struct _DocumentMeta {
+	//To be filled by user for query or by backend as a result
 	char* doi; /**< The doi of the paper */
 	char* url; /**< The url of the paper in the journal */
 	unsigned long year; /**< Publication year of the paper */
@@ -48,14 +49,20 @@ typedef struct _DocumentMeta {
 	char* journal; /**< The journal in which the paper was published */
 	char* issn; /**< The journal issn in which the paper was published */
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
-	char* pdfUrl; /**< Url where the pdf of the document can be found */
+	char* downloadUrl; /**< Url where the full text of the document can be found */
 	char* abstract; /**< abstract of the document */
+	char* searchText;
 	bool hasFullText; /**< a hint that docuement has full text avialable */
 
 	int backendId; /**< The id of the backend that found the document, or the id that shal be tried to find the document */
-	void* backendData; /**< Backend specific data */
+
+	//To be filled by backend
+	void* backendData; /**< Backend specific data, not to be used by clients*/
+	void (*backend_data_free_fn)(void*); /**< Function to free backend specific data, not to be used by clients*/
+	void* (*backend_data_copy_fn)(void*); /**< Function to deep copy backend specific data, not to be used by clients*/
+
+	//Filled by libscipaper core
 	bool compleatedLookup; /**< Entry lookup compleated */
-	size_t backendDataLength; /**< Length of the backend specific data */
 } DocumentMeta;
 
 /**
