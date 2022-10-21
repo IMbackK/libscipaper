@@ -24,19 +24,12 @@
 
 struct sci_module {
 	GModule *module;
+	char *name;
 	void *data;
 };
 
 /** List of all loaded modules */
 static GSList *modules = NULL;
-
-static BackendInfo *sci_modules_get_info(struct sci_module *module)
-{
-	gpointer mip = NULL;
-	if(g_module_symbol(module->module, "backend_info", (void**)&mip) == FALSE)
-		return NULL;
-	return (BackendInfo*)mip;
-}
 
 static bool sci_modules_init_modules(void)
 {
@@ -47,16 +40,14 @@ static bool sci_modules_init_modules(void)
 		struct sci_module *module = element->data;
 		if(g_module_symbol(module->module, "sci_module_init", (void**)&fnp) == FALSE)
 		{
-			sci_log(LL_ERR, "faled to load module %s: missing symbol sci_module_init",
-					   sci_modules_get_info(module)->name);
+			sci_log(LL_ERR, "faled to load module %s: missing symbol sci_module_init", module->name);
 			return FALSE;
 		}
 		init_fn = (sci_module_init_fn*)fnp;
 		const char* result = init_fn(&module->data);
 		if(result)
 		{
-			sci_log(LL_ERR, "faled to load module %s: %s",
-					   sci_modules_get_info(module)->name, result);
+			sci_log(LL_ERR, "faled to load module %s: %s",  module->name, result);
 			return FALSE;
 		}
 	}
@@ -77,29 +68,15 @@ static void sci_modules_load(gchar **modlist)
 	for (i = 0; modlist[i]; i++)
 	{
 		struct sci_module *module = g_malloc(sizeof(*module));
+		module->name = g_strdup(modlist[i]);
 		gchar *tmp = g_module_build_path(path, modlist[i]);
 
 		sci_log(LL_DEBUG, "Loading module: %s from %s", modlist[i], path);
 
-		if ((module->module = g_module_open(tmp, 0)) != NULL) {
-			BackendInfo *info = sci_modules_get_info(module);
-			bool blockLoad = FALSE;
-
-			if(!info)
-			{
-				sci_log(LL_ERR, "Failed to retrieve module information for: %s did you forget to export a backend_info symbol?", modlist[i]);
-				g_module_close(module->module);
-				g_free(module);
-				blockLoad = TRUE;
-			}
-
-			if (!blockLoad)
-				modules = g_slist_append(modules, module);
-		}
+		if ((module->module = g_module_open(tmp, 0)) != NULL)
+			modules = g_slist_append(modules, module);
 		else
-		{
 			sci_log(LL_WARN, "Failed to load module %s: %s; skipping", modlist[i], g_module_error());
-		}
 
 		g_free(tmp);
 	}
@@ -154,10 +131,11 @@ void sci_modules_exit(void)
 			}
 			else
 			{
-				sci_log(LL_DEBUG, "module %s: has no sci_module_exit", sci_modules_get_info(module)->name);
+				sci_log(LL_ERR, "module %s: has no sci_module_exit symbol", module->name);
 			}
 			
 			g_module_close(module->module);
+			g_free(module->name);
 			g_free(module);
 		}
 

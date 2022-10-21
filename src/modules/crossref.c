@@ -33,9 +33,10 @@
 #define MODULE_NAME		"crossref"
 
 /** Module information */
-G_MODULE_EXPORT BackendInfo backend_info = {
+static BackendInfo backend_info = {
 	/** Name of the module */
 	.name = MODULE_NAME,
+	.capabilities = SCI_CAP_FILL
 };
 
 #define CROSSREF_URL_DOMAIN  "https://api.crossref.org/"

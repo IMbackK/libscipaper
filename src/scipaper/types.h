@@ -27,10 +27,27 @@ typedef enum {
 } loglevel_t;
 
 /**
+ * @brief Flags that descibe what a backend can do
+ */
+typedef enum {
+	SCI_CAP_FILL = 1,			/**< Backend can fill DocumentMeta structs*/
+	SCI_CAP_GET_TEXT = (1<<1),	/**< Backend can get full text of documents*/
+	SCI_CAP_GET_PDF = (1<<2),	/**< Backend can get pdfs of documents*/
+} capability_flags_t;
+
+/**
+ * @brief returns the capabilities flags as a human readble string.
+ * @param capabilities Print with INFO priority if true and DEBUG priority if false
+ * @return A newly allocated string stating the flags
+ */
+char* capability_flags_get_str(capability_flags_t capabilities);
+
+/**
  * @brief Backend information struct
  */
 typedef struct _BackendInfo {
 	const char *const name; /**< Name of the plugin */
+	capability_flags_t capabilities; /**< Flags that descibe what a backend can do */
 } BackendInfo;
 
 /**
@@ -85,11 +102,11 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta);
 void document_meta_free(DocumentMeta* meta);
 
 /**
- * @brief Prints a DocumentMeta to formated text output using the passed printf like printFn
- * @param info Print with INFO priority if true and DEBUG priority if false
+ * @brief Creates a human readble string describeing a DocumentMeta
  * @param meta The DocumentMeta struct to print
+ * @return a newly allocated string containing the describtion
  */
-void document_meta_print(const DocumentMeta* meta, bool info);
+char* document_meta_get_string(const DocumentMeta* meta);
 
 /**
  * @brief Frees a list/array of document metas

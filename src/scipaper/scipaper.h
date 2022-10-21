@@ -102,9 +102,9 @@ bool sci_save_pdf_to_file(const PdfData* data, const char* fileName);
 bool sci_save_document_to_file(const DocumentMeta* meta, const char* fileName);
 
 /**
- * @brief gives you an array of BackendInfo structs describeing eatch backend registered with libscipaper
+ * @brief gives you an array describeing eatch backend registered with libscipaper.
  *
- * @return an array of BackendInfo structs describeing eatch backend
+ * @return a NULL terminated array of BackendInfo structs describeing eatch backend, owend by libscipaper, do not free
  */
 const BackendInfo** sci_get_all_backends(void);
 

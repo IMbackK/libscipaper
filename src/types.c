@@ -4,6 +4,23 @@
 #include <assert.h>
 #include "sci-log.h"
 
+char* capability_flags_get_str(capability_flags_t capabilities)
+{
+	GString *string = g_string_new("");
+	if(capabilities & SCI_CAP_FILL)
+		g_string_append(string, "fill metadata, ");
+	if(capabilities & SCI_CAP_GET_TEXT)
+		g_string_append(string, "get full text, ");
+	if(capabilities & SCI_CAP_GET_PDF)
+		g_string_append(string, "get pdfs, ");
+
+	g_string_truncate(string, string->len-2);
+
+	char* str = string->str;
+	g_string_free(string, false);
+	return str;
+}
+
 DocumentMeta* document_meta_new(void)
 {
 	return g_malloc0(sizeof(DocumentMeta));
@@ -69,9 +86,9 @@ void document_meta_free(DocumentMeta* meta)
 	}
 }
 
-void document_meta_print(const DocumentMeta* meta, bool info)
+char* document_meta_get_string(const DocumentMeta* meta)
 {
-	sci_log(info ? LL_INFO : LL_DEBUG, "Document:\nDOI: %s\nTitle: %s\nAuthor: %s\nJournal: %s\nKeywords: %s\nAbstract: %s\n",
+	return g_strdup_printf("Document:\nDOI: %s\nTitle: %s\nAuthor: %s\nJournal: %s\nKeywords: %s\nAbstract: %s\n",
 		meta->doi ? meta->doi : "", meta->title ? meta->title : "", meta->author ? meta->author : "",
 		meta->journal ? meta->journal : "", meta->keywords ? meta->keywords : "",
 		meta->abstract ? meta->abstract : "");

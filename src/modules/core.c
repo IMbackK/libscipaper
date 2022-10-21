@@ -30,9 +30,10 @@
 #define MODULE_NAME		"core"
 
 /** Module information */
-G_MODULE_EXPORT BackendInfo backend_info = {
+static BackendInfo backend_info = {
 	/** Name of the module */
 	.name = MODULE_NAME,
+	.capabilities = SCI_CAP_FILL | SCI_CAP_GET_TEXT | SCI_CAP_GET_PDF
 };
 
 #define CORE_API_BASE_URL "https://api.core.ac.uk/v3/"
@@ -167,11 +168,10 @@ DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t ma
 		{
 			char** tokens = g_str_tokenize_and_fold(meta->title, NULL, NULL);
 			g_string_append(searchString, "title:\"");
-			while(*tokens)
+			for(size_t i = 0; tokens[i]; ++i)
 			{
-				g_string_append(searchString, *tokens);
-				g_free(*tokens);
-				++tokens;
+				g_string_append(searchString, tokens[i]);
+				g_free(tokens[i]);
 			}
 			g_free(tokens);
 			g_string_append(searchString, meta->title);
