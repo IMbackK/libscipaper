@@ -79,3 +79,44 @@ GString* wgetUrl(const char* url, int timeout)
 
 	return buffer;
 }
+
+GString* wpostUrl(const char* url, const char* data, int timeout)
+{
+	CURL* curlContext = curl_easy_init();
+	if(!curlContext)
+	{
+		sci_log(LL_ERR, "Utils: Could not init curl");
+		return NULL;
+	}
+
+	char errorBuffer[CURL_ERROR_SIZE] = "";
+	GString* buffer = g_string_new(NULL);
+	CURLcode ret;
+
+	ret = curl_easy_setopt(curlContext, CURLOPT_ERRORBUFFER, errorBuffer);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_URL, url);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_WRITEFUNCTION, writeCallback);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_WRITEDATA, buffer);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_POST, 1);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_POSTFIELDS, data);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_TIMEOUT, timeout);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_setopt(curlContext, CURLOPT_SERVER_RESPONSE_TIMEOUT, timeout/3);
+	assert(ret == CURLE_OK);
+	ret = curl_easy_perform(curlContext);
+	curl_easy_cleanup(curlContext);
+	if(ret != CURLE_OK)
+	{
+		sci_log(LL_ERR, "Could not load from %s curl retuned errno %i\n%s", url, ret, errorBuffer);
+		g_string_free(buffer, true);
+		return NULL;
+	}
+
+	return buffer;
+}
