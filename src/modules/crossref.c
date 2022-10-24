@@ -311,11 +311,14 @@ static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* c
 	return documents;
 }
 
-static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, void* userData)
 {
 	struct CrPriv* priv = userData;
 	if(maxCount == 0)
+	{
+		sci_module_log(LL_WARN, "A request for 0 results was given");
 		return NULL;
+	}
 
 	if(meta->doi)
 		return cf_fill_from_doi(count, meta, priv);

@@ -31,12 +31,13 @@ void sci_paper_exit(void)
 		sci_log(LL_WARN, "%zu backend(s) have failed to unregister!!!", backendCount);
 }
 
-DocumentMeta* sci_find_by_doi(const char* doi)
+DocumentMeta* sci_find_by_doi(const char* doi, int backendId)
 {
 	DocumentMeta meta = {0};
 	meta.doi = (char*)doi;
+	meta.backendId = backendId;
 	size_t count;
-	DocumentMeta** documentMetas = sci_fill_meta(&meta, &count, 1);
+	DocumentMeta** documentMetas = sci_fill_meta(&meta, NULL, &count, 1, 0);
 	if(documentMetas)
 	{
 		DocumentMeta* meta = documentMetas[0];
@@ -53,7 +54,7 @@ DocumentMeta** sci_find_by_author(const char* author, size_t* count, size_t maxC
 {
 	DocumentMeta meta = {0};
 	meta.author = (char*)author;
-	return sci_fill_meta(&meta, count, maxCount);
+	return sci_fill_meta(&meta, NULL, count, maxCount, 0);
 }
 
 DocumentMeta* sci_find_by_title(const char* title)
@@ -61,7 +62,7 @@ DocumentMeta* sci_find_by_title(const char* title)
 	DocumentMeta meta = {0};
 	meta.title = (char*)title;
 	size_t count;
-	DocumentMeta** documentMetas = sci_fill_meta(&meta, &count, 1);
+	DocumentMeta** documentMetas = sci_fill_meta(&meta, NULL, &count, 1, 0);
 	if(documentMetas)
 	{
 		DocumentMeta* meta = documentMetas[0];
@@ -78,9 +79,8 @@ DocumentMeta** sci_find_by_journal(const char* jornal, size_t* count, size_t max
 {
 	DocumentMeta meta = {0};
 	meta.journal = (char*)jornal;
-	return sci_fill_meta(&meta, count, maxCount);
+	return sci_fill_meta(&meta, NULL, count, maxCount, 0);
 }
-
 
 bool sci_save_pdf_to_file(const PdfData* data, const char* fileName)
 {

@@ -51,6 +51,26 @@ typedef struct _BackendInfo {
 } BackendInfo;
 
 /**
+ * @brief This bitfield tells libscipaper what fields you require to have filled.
+ * libscipaper will try eatch of its backends in sequence untill
+ */
+typedef struct _FillReqest {
+	bool doi:1; /**< The doi of the paper */
+	bool url:1; /**< The url of the paper in the journal */
+	bool year:1; /**< Publication year of the paper */
+	bool publisher:1; /**< Publisher of the paper */
+	bool volume:1; /**< Jornal volume where the paper apeard */
+	bool pages:1; /**< Page(s) where the paper is to be found in the volume */
+	bool author:1; /**< The author(s) of the paper */
+	bool title:1; /**< The title of the paper */
+	bool journal:1; /**< The journal in which the paper was published */
+	bool issn:1; /**< The journal issn in which the paper was published */
+	bool keywords:1; /**< Keywords given by the author of the paper for the paper */
+	bool downloadUrl:1; /**< Url where the full text of the document can be found */
+	bool abstract:1; /**< abstract of the document */
+} FillReqest;
+
+/**
  * @brief This struct contains the metadata of a paper, must be created via document_meta_new() and freed via document_meta_free()
  */
 typedef struct _DocumentMeta {
@@ -58,7 +78,7 @@ typedef struct _DocumentMeta {
 	char* doi; /**< The doi of the paper */
 	char* url; /**< The url of the paper in the journal */
 	unsigned long year; /**< Publication year of the paper */
-	char* publisher; /**< Publisher time of the paper */
+	char* publisher; /**< Publisher of the paper */
 	char* volume; /**< Jornal volume where the paper apeard */
 	char* pages; /**< Page(s) where the paper is to be found in the volume */
 	char* author; /**< The author(s) of the paper */
@@ -68,6 +88,7 @@ typedef struct _DocumentMeta {
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
 	char* downloadUrl; /**< Url where the full text of the document can be found */
 	char* abstract; /**< abstract of the document */
+
 	char* searchText; /**< freeform text to search for in backends */
 	bool hasFullText; /**< a hint that docuement has full text avialable */
 
@@ -100,6 +121,13 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta);
  * @param meta The DocumentMeta struct to free
  */
 void document_meta_free(DocumentMeta* meta);
+
+/**
+ * @brief Adds the fields set in source but not in target to target
+ * @param target The DocumentMeta struct where the fields of source are to be added to
+ * @param source The DocumentMeta struct where to get the fields from
+ */
+void document_meta_combine(DocumentMeta* target, const DocumentMeta* source);
 
 /**
  * @brief Creates a human readble string describeing a DocumentMeta

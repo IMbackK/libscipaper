@@ -104,6 +104,36 @@ void document_meta_free_list(DocumentMeta** meta, size_t length)
 	}
 }
 
+void document_meta_combine(DocumentMeta* target, const DocumentMeta* source)
+{
+	if(!target || !source)
+		return;
+	if(!target->doi)
+		target->doi = g_strdup(source->doi);
+	if(!target->url)
+		target->url = g_strdup(source->url);
+	if(!target->year)
+		target->year = source->year;
+	if(!target->publisher)
+		target->publisher = g_strdup(source->publisher);
+	if(!target->volume)
+		target->volume = g_strdup(source->volume);
+	if(!target->pages)
+		target->pages = g_strdup(source->pages);
+	if(!target->author)
+		target->author = g_strdup(source->author);
+	if(!target->journal)
+		target->journal = g_strdup(source->journal);
+	if(!target->issn)
+		target->issn = g_strdup(source->issn);
+	if(!target->keywords)
+		target->keywords =  g_strdup(source->keywords);
+	if(!target->downloadUrl)
+		target->downloadUrl =  g_strdup(source->downloadUrl);
+	if(!target->abstract)
+		target->abstract =  g_strdup(source->abstract);
+}
+
 void pdf_data_free(PdfData* data)
 {
 	document_meta_free(data->meta);

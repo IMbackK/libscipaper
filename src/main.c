@@ -31,7 +31,7 @@ static void search_and_grab_wallauer_via_core()
 	queryMeta->author = g_strdup("Wallauer");
 	queryMeta->hasFullText = true;
 	queryMeta->backendId = id;
-	DocumentMeta** documents = sci_fill_meta(queryMeta, &count, 20);
+	DocumentMeta** documents = sci_fill_meta(queryMeta, NULL, &count, 20, 0);
 	document_meta_free(queryMeta);
 
 	if(documents)
@@ -40,7 +40,8 @@ static void search_and_grab_wallauer_via_core()
 
 		puts("Getting text for first document:");
 		char* text = sci_get_document_text(documents[0]);
-		puts(text);
+		if(text)
+			puts("got text!");
 		free(text);
 		document_meta_free_list(documents, count);
 	}
@@ -58,7 +59,7 @@ static void search_wallauer(void)
 	queryMeta->author = g_strdup("Wallauer");
 
 	size_t count;
-	DocumentMeta** documents = sci_fill_meta(queryMeta, &count, 20);
+	DocumentMeta** documents = sci_fill_meta(queryMeta, NULL, &count, 20, 0);
 
 	document_meta_free(queryMeta);
 
@@ -77,7 +78,7 @@ static void search_wallauer(void)
 static void fill_meta_by_doi(void)
 {
 	printf("Starting %s\n", __func__);
-	DocumentMeta* meta = sci_find_by_doi("10.1002/ange.19410544309");
+	DocumentMeta* meta = sci_find_by_doi("10.1002/ange.19410544309", 0);
 
 	if(meta)
 	{

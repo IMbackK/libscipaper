@@ -32,11 +32,19 @@ G_MODULE_EXPORT BackendInfo backend_info = {
 	.name = MODULE_NAME,
 };
 
-DocumentMeta** test_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+DocumentMeta** test_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, void* userData)
 {
 	(void)meta;
 	(void)maxCount;
 	(void)userData;
+	(void)page;
+
+	if(maxCount == 0)
+	{
+		sci_module_log(LL_WARN, "A request for 0 results was given");
+		return NULL;
+	}
+
 	*count = 1;
 	DocumentMeta** ret = g_malloc0(sizeof(*ret));
 	ret[0] = document_meta_new();
@@ -47,7 +55,7 @@ char* test_get_document_text_in(const DocumentMeta* meta, void* userData)
 {
 	size_t count;
 	(void)userData;
-	DocumentMeta** results = sci_fill_meta(meta, &count, 1);
+	DocumentMeta** results = sci_fill_meta(meta, NULL, &count, 1, 0);
 	if(results)
 	{
 		document_meta_free_list(results, count);

@@ -27,19 +27,22 @@ void sci_log_set_verbosity(loglevel_t verbosity);
  *
  * @param meta A DocumentMeta struct with at least one value set.
  * If backendId == 0 all backends will be checked until one can indentify the document otherwise the backend with the id backendId will be used
+ * @param fill A pointer to a FillReqest struct that discribes what fields are required by user, can be NULL for "dont care"
  * @param count A pointer where the nummber of found documents that match meta is stored
  * @param maxCount maximum number of documents to match
+ * @param page if page is set > 0, the first page*maxCount entries are skipped and the subsiquent results are returned instead
  * @return A list of filled DocumentMetas, to be freed with document_meta_free_list(), or NULL if none could be found
  */
-DocumentMeta** sci_fill_meta(const DocumentMeta* meta, size_t* count, size_t maxCount);
+DocumentMeta** sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t* count, size_t maxCount, size_t page);
 
 /**
  * @brief Tries to find the metadata of the document with the given doi
  *
  * @param doi Doi to search for
+ * @param backendId The backend to use to find the doi, or 0 for "any"
  * @return A filled DocumentMeta struct, to be freed with document_meta_free(), or NULL if none could be found
  */
-DocumentMeta* sci_find_by_doi(const char* doi);
+DocumentMeta* sci_find_by_doi(const char* doi, int backendId);
 
 /**
  * @brief Tries to find the metadata of the document with the given title

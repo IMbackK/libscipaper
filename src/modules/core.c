@@ -136,11 +136,16 @@ static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePr
 	return result;
 }
 
-DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, void* userData)
 {
 	struct CorePriv* priv = userData;
-
 	DocumentMeta** results = NULL;
+
+	if(maxCount == 0)
+	{
+		sci_module_log(LL_WARN, "A request for 0 results was given");
+		return NULL;
+	}
 
 	if(meta->author || meta->title || meta->keywords || meta->searchText)
 	{
@@ -233,7 +238,7 @@ char* core_get_document_text(const DocumentMeta* meta, void* userData)
 	else
 	{
 		size_t count;
-		DocumentMeta** metas = core_fill_meta(meta, &count, 1, priv);
+		DocumentMeta** metas = core_fill_meta(meta, &count, 1, 0, priv);
 		if(!metas)
 		{
 			return NULL;
@@ -252,7 +257,7 @@ char* core_get_document_text(const DocumentMeta* meta, void* userData)
 static PdfData* core_get_document_pdf_data(const DocumentMeta* meta, void* userData)
 {
 	struct CorePriv* priv = userData;
-	DocumentMeta* pdfMeta;
+	DocumentMeta* pdfMeta = NULL;
 
 	if(meta->backendId == priv->id && meta->backendData)
 	{
@@ -260,12 +265,10 @@ static PdfData* core_get_document_pdf_data(const DocumentMeta* meta, void* userD
 	}
 	else
 	{
-		size_t count;
-		DocumentMeta** metas = core_fill_meta(meta, &count, 1, priv);
-		if(!metas)
+		if(meta->doi)
+			pdfMeta = sci_find_by_doi(meta->doi, priv->id);
+		if(!pdfMeta)
 			return NULL;
-		else
-			pdfMeta = document_meta_copy(metas[0]);
 	}
 
 	struct CoreData* coreData = pdfMeta->backendData;
