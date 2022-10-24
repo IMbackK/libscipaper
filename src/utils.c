@@ -1,3 +1,21 @@
+/*
+ * utils.c
+ * Copyright (C) Carl Philipp Klemm 2021 <carl@uvos.xyz>
+ *
+ * utils.c is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * utils.c is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "utils.h"
 
 #include <curl/curl.h>
@@ -41,6 +59,38 @@ static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *use
 	GString* buffer = userp;
 	g_string_append_len(buffer, (char*)contents, size * nmemb);
 	return size * nmemb;
+}
+
+PdfData* wgetPdf(const char* url, int timeout)
+{
+	GString *response = wgetUrl(url, timeout);
+
+	PdfData* pdfData = NULL;
+
+	if(response && response->len > 100)
+	{
+		if(response->str[0] == 0x25 &&
+			response->str[1] == 0x50 &&
+			response->str[2] == 0x44 &&
+			response->str[3] == 0x46)
+		{
+			pdfData = g_malloc0(sizeof(*pdfData));
+			pdfData->length = response->len;
+			pdfData->data = (unsigned char*)response->str;
+		}
+		else
+		{
+			sci_log(LL_DEBUG, "%s: Got invalid pdf data", __func__);
+		}
+	}
+	else
+	{
+		sci_log(LL_DEBUG, "%s: Return data to short to be a pdf at length %zu", __func__, response ? response->len : 0);
+	}
+	if(response)
+		g_string_free(response, false);
+
+	return pdfData;
 }
 
 GString* wgetUrl(const char* url, int timeout)

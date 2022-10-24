@@ -1,5 +1,6 @@
 #pragma once
 #include <glib.h>
+#include "types.h"
 
 struct Pair
 {
@@ -29,6 +30,14 @@ struct Pair* pair_new(const char* key, const char* value);
  * @return A newly allocated GString containing the query string
  */
 GString* buildQuery(const GSList* list);
+
+/**
+ * @brief Get a pdf file
+ *
+ * @param url The url to get
+ * @return A newly PdfData struct or NULL if unsucessfull
+ */
+PdfData* wgetPdf(const char* url, int timeout);
 
 /**
  * @brief Get the http data return as a string from a url via a GET request

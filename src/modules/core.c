@@ -51,13 +51,14 @@ struct CorePriv
 struct CoreData
 {
 	char* fullText;
-	long long int id;
+	char* id;
 };
 
 static void core_free_data(void* data)
 {
 	struct CoreData* coredata = data;
 	g_free(coredata->fullText);
+	g_free(coredata->id);
 	g_free(coredata);
 }
 
@@ -66,7 +67,7 @@ static void* core_copy_data(void* data)
 	struct CoreData* coreData = data;
 	struct CoreData* copy = g_malloc0(sizeof(*copy));
 	copy->fullText = g_strdup(coreData->fullText);
-	copy->id = coreData->id;
+	copy->id =  g_strdup(coreData->id);
 	return copy;
 }
 
@@ -84,7 +85,7 @@ static GString* core_create_url(struct CorePriv *priv, const char* method, GSLis
 	return url;
 }
 
-long long int core_get_document_id(const nx_json* idArray)
+char* core_get_document_id(const nx_json* idArray)
 {
 	if(idArray->type != NX_JSON_ARRAY)
 		return 0;
@@ -93,7 +94,7 @@ long long int core_get_document_id(const nx_json* idArray)
 	{
 		const nx_json* identifier = nx_json_item(idArray, i);
 		if(g_str_equal(nx_json_get(identifier, "type")->text_value, "CORE_ID"))
-			return g_ascii_strtoll(nx_json_get(identifier, "identifier")->text_value, NULL, 10);
+			return g_strdup(nx_json_get(identifier, "identifier")->text_value);
 	}
 
 	return 0;
@@ -132,6 +133,7 @@ static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePr
 	result->title = g_strdup(nx_json_get(item, "title")->text_value);
 	result->publisher = g_strdup(nx_json_get(item, "publisher")->text_value);
 	result->year = nx_json_get(item, "yearPublished")->int_value;
+	result->downloadUrl = g_strdup(nx_json_get(item, "downloadUrl")->text_value);
 
 	return result;
 }
@@ -256,10 +258,11 @@ char* core_get_document_text(const DocumentMeta* meta, void* userData)
 
 static PdfData* core_get_document_pdf_data(const DocumentMeta* meta, void* userData)
 {
+	sci_module_log(LL_DEBUG, "%s got meta from %i", __func__, meta->backendId);
 	struct CorePriv* priv = userData;
 	DocumentMeta* pdfMeta = NULL;
 
-	if(meta->backendId == priv->id && meta->backendData)
+	if(meta->backendId == priv->id)
 	{
 		pdfMeta = document_meta_copy(meta);
 	}
@@ -268,30 +271,22 @@ static PdfData* core_get_document_pdf_data(const DocumentMeta* meta, void* userD
 		if(meta->doi)
 			pdfMeta = sci_find_by_doi(meta->doi, priv->id);
 		if(!pdfMeta)
+		{
+			sci_module_log(LL_DEBUG, "unable to fill for doi %s to get pdf", meta->doi);
 			return NULL;
+		}
 	}
 
-	struct CoreData* coreData = pdfMeta->backendData;
-	char* idStr = g_strdup_printf("%lli", coreData->id);
-	GString *getUrl = core_create_url(priv, CORE_METHOD_OUTPUTS, NULL);
-	g_string_append(getUrl, idStr);
-	g_string_append(getUrl, "/download");
-	g_free(idStr);
+	if(!pdfMeta->downloadUrl)
+		return NULL;
 
-	GString *response = wgetUrl(getUrl->str, priv->timeout);
+	sci_module_log(LL_DEBUG, "Trying to get pdf from %s", pdfMeta->downloadUrl);
+	PdfData* pdfData = wgetPdf(pdfMeta->downloadUrl, priv->timeout);
 
-	PdfData* pdfData = NULL;
-	if(response)
-	{
-		pdfData = g_malloc0(sizeof(*pdfData));
-		pdfData->length = response->len;
-		pdfData->data = g_memdup2(response->str, response->len);
-		pdfData->meta = document_meta_copy(pdfMeta);
-	}
-
-	g_string_free(getUrl, true);
-	g_string_free(response, true);
-	document_meta_free(pdfMeta);
+	if(pdfData)
+		pdfData->meta = pdfMeta;
+	else
+		document_meta_free(pdfMeta);
 
 	return pdfData;
 }
