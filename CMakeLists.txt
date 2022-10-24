@@ -18,7 +18,7 @@ pkg_check_modules(CURL REQUIRED libcurl)
 
 set(COMMON_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GMODULE_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS} ./${PROJECT_NAME} ./modapi .)
 set(COMMON_LIBRARIES ${GLIB_LIBRARIES} ${GMODULE_LIBRARIES} ${CURL_LIBRARIES})
-set(COMMON_FLAGS "-std=c99 -Wall -O2 -march=native -g")
+set(COMMON_FLAGS "-std=c99 -Wall -O2 -march=native -g -fno-strict-aliasing")
 
 set(CMAKE_INSTALL_PREFIX "/usr")
 
