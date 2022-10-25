@@ -19,7 +19,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "types.h"
+#include <scipaper/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -162,9 +162,11 @@ size_t sci_get_backend_count(void);
  * @brief Inits libscipaper, this function must be your first call to libscipaper
  *
  * @param config_file An optional file name to a config ini file for libscipaper, or NULL
+ * @param data An optional pointer to a keyfile in ram
+ * @param length The length of the data at data
  * @return true on sucess false on failure
  */
-bool sci_paper_init(const char* config_file);
+bool sci_paper_init(const char* config_file, const char* data, size_t length);
 
 /**
  * @brief Exits libscipaper, this function must be your final call to libscipaper,

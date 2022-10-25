@@ -16,7 +16,14 @@ pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(GMODULE REQUIRED gmodule-2.0)
 pkg_check_modules(CURL REQUIRED libcurl)
 
-set(COMMON_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GMODULE_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS} ./${PROJECT_NAME} ./modapi .)
+set(COMMON_INCLUDE_DIRS
+  ${GLIB_INCLUDE_DIRS}
+  ${GMODULE_INCLUDE_DIRS}
+  ${CURL_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_LIST_DIR}/src/
+  ${CMAKE_CURRENT_LIST_DIR}/src/${PROJECT_NAME}
+  ${CMAKE_CURRENT_LIST_DIR}/src/modapi)
+message(${COMMON_INCLUDE_DIRS})
 set(COMMON_LIBRARIES ${GLIB_LIBRARIES} ${GMODULE_LIBRARIES} ${CURL_LIBRARIES})
 set(COMMON_FLAGS "-std=c99 -Wall -O2 -march=native -g -fno-strict-aliasing")
 
@@ -25,6 +32,7 @@ set(CMAKE_INSTALL_PREFIX "/usr")
 set(API_HEADERS_DIR src/scipaper/)
 set(API_HEADERS
 	${API_HEADERS_DIR}/scipaper.h
+	${API_HEADERS_DIR}/types.h
 )
 install(FILES ${API_HEADERS} DESTINATION include/${PROJECT_NAME})
 
