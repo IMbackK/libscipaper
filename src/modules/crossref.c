@@ -235,7 +235,7 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	return ret;
 }
 
-static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* count, size_t maxCount, struct CrPriv* priv)
+static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, struct CrPriv* priv)
 {
 	GSList* queryList = NULL;
 
@@ -259,6 +259,9 @@ static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* c
 
 	char* intStr = g_strdup_printf("%zu", maxCount);
 	queryList = g_slist_prepend(queryList, pair_new("rows", intStr));
+	g_free(intStr);
+	intStr = g_strdup_printf("%zu", page*maxCount);
+	queryList = g_slist_prepend(queryList, pair_new("offset", intStr));
 	g_free(intStr);
 	queryList = g_slist_prepend(queryList, pair_new("select", CROSSREF_SELECT));
 
@@ -323,7 +326,7 @@ static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, s
 	if(meta->doi)
 		return cf_fill_from_doi(count, meta, priv);
 
-	return cf_fill_try_work_query(meta, count, maxCount, priv);
+	return cf_fill_try_work_query(meta, count, maxCount, page, priv);
 }
 
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);

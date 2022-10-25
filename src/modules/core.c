@@ -155,7 +155,9 @@ DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t ma
 		GSList* queryList = g_slist_prepend(NULL, pair_new("limit", intStr));
 		g_free(intStr);
 		queryList = g_slist_prepend(queryList, pair_new("scroll", "true"));
-		queryList = g_slist_prepend(queryList, pair_new("offset", "0"));
+		char* scrollStr = g_strdup_printf("%zu", page*maxCount);
+		queryList = g_slist_prepend(queryList, pair_new("offset", scrollStr));
+		g_free(scrollStr);
 		queryList = g_slist_prepend(queryList, pair_new("stats", "false"));
 
 		GString* searchString = g_string_new(NULL);
