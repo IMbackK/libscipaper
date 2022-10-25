@@ -1,3 +1,21 @@
+/*
+ * scipaper.h
+ * Copyright (C) Carl Philipp Klemm 2021 <carl@uvos.xyz>
+ *
+ * scipaper.h is free software: you can redistribute it and/or modify it
+ * under the terms of the lesser GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * scipaper.h is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the lesser GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <stdbool.h>
@@ -133,7 +151,6 @@ int sci_backend_get_id_by_name(const char* name);
  * @return a const string with the name of the backend, has static lifetime and shal not be freed
  */
 const char* sci_get_backend_name(int id);
-
 
 /**
  * @brief gives you the nummber of backends currently registered

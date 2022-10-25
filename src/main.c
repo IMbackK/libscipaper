@@ -1,3 +1,21 @@
+/*
+ * main.c
+ * Copyright (C) Carl Philipp Klemm 2021 <carl@uvos.xyz>
+ *
+ * main.c is free software: you can redistribute it and/or modify it
+ * under the terms of the lesser GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * main.c is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the lesser GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -38,11 +56,27 @@ static void search_and_grab_wallauer_via_core()
 	{
 		print_documents(documents, count);
 
-		puts("Getting text for first document:");
+		printf("Getting text for first document from: %s (%i)\n", sci_get_backend_name(documents[0]->backendId), documents[0]->backendId);
 		char* text = sci_get_document_text(documents[0]);
 		if(text)
 			puts("got text!");
 		free(text);
+
+		for(size_t i = 0; i < count; ++i)
+		{
+			PdfData* data = sci_get_document_pdf_data(documents[i]);
+			if(data)
+			{
+				puts("got got data! saveing..");
+				char* fileName = g_strdup_printf("./%zu.pdf", i);
+				bool ret = sci_save_pdf_to_file(data, fileName);
+				g_free(fileName);
+				if(ret)
+					puts("saved");
+				else
+					puts("not saved");
+			}
+		}
 		document_meta_free_list(documents, count);
 	}
 	else
@@ -120,8 +154,8 @@ int main(int argc, char** argv)
 		free(cap);
 	}
 
-	search_wallauer();
-	fill_meta_by_doi();
+	//search_wallauer();
+	//fill_meta_by_doi();
 	search_and_grab_wallauer_via_core();
 
 	sci_paper_exit();

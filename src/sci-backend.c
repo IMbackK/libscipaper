@@ -1,3 +1,21 @@
+/*
+ * sci-backend.c
+ * Copyright (C) Carl Philipp Klemm 2021 <carl@uvos.xyz>
+ *
+ * sci-backend.c is free software: you can redistribute it and/or modify it
+ * under the terms of the lesser GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * sci-backend.c is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the lesser GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "sci-backend.h"
 #include "scipaper.h"
 
@@ -52,6 +70,8 @@ const BackendInfo* sci_get_backend_info(int id)
 
 const char* sci_get_backend_name(int id)
 {
+	if(id == 0)
+		return "Unkown/Any";
 	const BackendInfo* backend = sci_get_backend_info(id);
 	if(!backend)
 		return NULL;
@@ -204,7 +224,7 @@ DocumentMeta** sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 			}
 		}
 	}
-	sci_log(LL_WARN, "Unable to fill meta %s", __func__);
+	sci_log(LL_WARN, "%s: Unable to fill meta", __func__);
 	count = 0;
 	return NULL;
 }
@@ -221,22 +241,24 @@ char* sci_get_document_text(const DocumentMeta* meta)
 				return text;
 		}
 	}
-	sci_log(LL_WARN, "Unable to get text %s", __func__);
+	sci_log(LL_WARN, "%s: Unable to get text", __func__);
 	return NULL;
 }
 
 PdfData* sci_get_document_pdf_data(const DocumentMeta* meta)
 {
+	bool backendAvail = false;
 	for(GSList *element = backends; element; element = element->next)
 	{
 		struct SciBackend* backend = element->data;
 		if(backend->get_document_pdf_data && (meta->backendId == backend->id || meta->backendId == 0))
 		{
 			PdfData* data = backend->get_document_pdf_data(meta, backend->user_data);
+			backendAvail = true;
 			if(data)
 				return data;
 		}
 	}
-	sci_log(LL_WARN, "Unable to get pdf data %s", __func__);
+	sci_log(LL_WARN, "%s: Unable to get pdf data%s", __func__, backendAvail ? "" : " no backend available");
 	return NULL;
 }
