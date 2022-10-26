@@ -55,3 +55,15 @@ GString* wgetUrl(const char* url, int timeout);
  * @return A newly allocated GString containing the data grabed from the url on sucess, or NULL on failure
  */
 GString* wpostUrl(const char* url, const char* data, int timeout);
+
+/**
+ * @brief Create a json style entry string
+ *
+ * @param indent intent level to prepend
+ * @param key json entry key
+ * @param value json entry value
+ * @param quote if true qoutes "" are placed around value
+ * @param newline if true the returned string ends with a unix newline
+ * @return A newly allocated GString containing the data grabed from the url on sucess, or NULL on failure
+ */
+GString* createJsonEntry(const int indent, const char* key, const char* value, bool quote, bool newline);

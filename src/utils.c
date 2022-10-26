@@ -170,3 +170,28 @@ GString* wpostUrl(const char* url, const char* data, int timeout)
 
 	return buffer;
 }
+
+GString* createJsonEntry(const int indent, const char* key, const char* value, bool quote, bool newline)
+{
+	if(!key || !value)
+		return g_string_new("");
+
+	GString* ret = g_string_new(NULL);
+
+	for(int i = 0; i < indent; ++i)
+		g_string_append_c(ret, '\t');
+
+	g_string_append_c(ret, '\"');
+	g_string_append(ret, key);
+	g_string_append(ret, "\":");
+	g_string_append_c(ret, ' ');
+	if(quote)
+		g_string_append_c(ret, '\"');
+	g_string_append(ret, value);
+	if(quote)
+		g_string_append_c(ret, '\"');
+	if(newline)
+		g_string_append(ret, ",\n");
+
+	return ret;
+}
