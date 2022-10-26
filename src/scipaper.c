@@ -27,6 +27,8 @@
 #include "sci-modules.h"
 #include "scipaper.h"
 
+static const VersionFixed version = {1, 0, 0};
+
 bool sci_paper_init(const char* config_file, const char* data, size_t length)
 {
 	sci_log_open("libscipaper", LOG_USER, SCI_LOG_STDERR);
@@ -120,4 +122,9 @@ bool sci_save_document_to_file(const DocumentMeta* meta, const char* fileName)
 	if(!data)
 		return false;
 	return sci_save_pdf_to_file(data, fileName);
+}
+
+const VersionFixed* sci_get_version(void)
+{
+	return &version;
 }

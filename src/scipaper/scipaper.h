@@ -156,7 +156,7 @@ const char* sci_get_backend_name(int id);
 size_t sci_get_backend_count(void);
 
 /**
- * @brief Inits libscipaper, this function must be your first call to libscipaper
+ * @brief Inits libscipaper, this function must be your first call to libscipaper, besides sci_get_version()
  *
  * @param config_file An optional file name to a config ini file for libscipaper, or NULL
  * @param data An optional pointer to a keyfile in ram
@@ -170,6 +170,12 @@ bool sci_paper_init(const char* config_file, const char* data, size_t length);
  * it is an error to reinit libscipaper sci_paper_init() after executig sci_paper_exit()
  */
 void sci_paper_exit(void);
+
+/**
+ * @brief get the version of scipaper in use
+ * @return a const struct containing the version of scipaper in use. owned by libscipaper do not free
+ */
+const VersionFixed* sci_get_version(void);
 
 /**
 ....

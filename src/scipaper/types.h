@@ -61,6 +61,15 @@ typedef enum {
 char* capability_flags_get_str(capability_flags_t capabilities);
 
 /**
+ * @brief This struct contains the version of libscipaper in use
+ */
+typedef struct _VersionFixed {
+	unsigned int major;
+	unsigned int minor;
+	unsigned int patch;
+} VersionFixed;
+
+/**
  * @brief Backend information struct
  */
 typedef struct _BackendInfo {
