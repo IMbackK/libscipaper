@@ -17,6 +17,7 @@
  */
 
 #include <glib.h>
+#include <string.h>
 #include "sci-modules.h"
 #include "sci-log.h"
 #include "sci-backend.h"
@@ -85,10 +86,10 @@ static GString* core_create_url(struct CorePriv *priv, const char* method, GSLis
 	return url;
 }
 
-char* core_get_document_id(const nx_json* idArray)
+static char* core_get_document_id(const nx_json* idArray)
 {
 	if(idArray->type != NX_JSON_ARRAY)
-		return 0;
+		return NULL;
 
 	for(size_t i = 0; i < idArray->length; ++i)
 	{
@@ -97,7 +98,22 @@ char* core_get_document_id(const nx_json* idArray)
 			return g_strdup(nx_json_get(identifier, "identifier")->text_value);
 	}
 
-	return 0;
+	return NULL;
+}
+
+static char* core_get_document_doi(const nx_json* idArray)
+{
+	if(idArray->type != NX_JSON_ARRAY)
+		return NULL;
+
+	for(size_t i = 0; i < idArray->length; ++i)
+	{
+		const nx_json* identifier = nx_json_item(idArray, i);
+		if(g_str_equal(nx_json_get(identifier, "type")->text_value, "DOI"))
+			return g_strdup(nx_json_get(identifier, "identifier")->text_value);
+	}
+
+	return NULL;
 }
 
 static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePriv* priv)
@@ -129,7 +145,11 @@ static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePr
 	g_string_free(authorString, false);
 
 	result->abstract = g_strdup(nx_json_get(item, "abstract")->text_value);
-	result->doi = g_strdup(nx_json_get(item, "doi")->text_value);
+	const struct nx_json* doiJson = nx_json_get(item, "doi");
+	if(doiJson->type == NX_JSON_STRING && strlen(doiJson->text_value) > 5)
+		result->doi = g_strdup(doiJson->text_value);
+	else
+		result->doi = core_get_document_doi(nx_json_get(item, "identifiers"));
 	result->title = g_strdup(nx_json_get(item, "title")->text_value);
 	result->publisher = g_strdup(nx_json_get(item, "publisher")->text_value);
 	result->year = nx_json_get(item, "yearPublished")->int_value;
@@ -154,7 +174,6 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		char* intStr = g_strdup_printf("%zu", maxCount);
 		GSList* queryList = g_slist_prepend(NULL, pair_new("limit", intStr));
 		g_free(intStr);
-		queryList = g_slist_prepend(queryList, pair_new("scroll", "true"));
 		char* scrollStr = g_strdup_printf("%zu", page*maxCount);
 		queryList = g_slist_prepend(queryList, pair_new("offset", scrollStr));
 		g_free(scrollStr);
@@ -175,17 +194,14 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		}
 		if(meta->keywords)
 		{
-			char** tokens = g_str_tokenize_and_fold(meta->title, NULL, NULL);
-			g_string_append(searchString, "title:\"");
+			char** tokens = g_str_tokenize_and_fold(meta->keywords, NULL, NULL);
 			for(size_t i = 0; tokens[i]; ++i)
 			{
 				g_string_append(searchString, tokens[i]);
+				g_string_append_c(searchString, '+');
 				g_free(tokens[i]);
 			}
 			g_free(tokens);
-			g_string_append(searchString, meta->title);
-			g_string_append(searchString, "\"+");
-
 		}
 		if(meta->searchText)
 		{
@@ -199,7 +215,7 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 
 		GString* url = core_create_url(priv, CORE_METHOD_SEARCH_WORKS, queryList);
 		sci_module_log(LL_DEBUG, "%s: getting url string: %s", __func__, url->str);
-		GString* jsonText = wgetUrl(url->str, priv->timeout);
+		GString* jsonText = wgetUrl(url->str, priv->timeout + maxCount);
 		g_string_free(url, true);
 		if(!jsonText)
 			return results;
