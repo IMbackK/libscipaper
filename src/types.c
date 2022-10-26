@@ -39,6 +39,24 @@ char* capability_flags_get_str(capability_flags_t capabilities)
 	return str;
 }
 
+RequestReturn* request_return_new(size_t count, size_t maxCount)
+{
+	RequestReturn* ret = g_malloc0(sizeof(*ret));
+	ret->documents = g_malloc0(sizeof(*ret->documents)*count);
+	ret->count = count;
+	ret->maxCount = maxCount;
+	return ret;
+}
+
+void request_return_free(RequestReturn* reqRet)
+{
+	if(!reqRet)
+		return;
+
+	document_meta_free_list(reqRet->documents, reqRet->count);
+	g_free(reqRet);
+}
+
 DocumentMeta* document_meta_new(void)
 {
 	return g_malloc0(sizeof(DocumentMeta));

@@ -32,7 +32,7 @@ G_MODULE_EXPORT BackendInfo backend_info = {
 	.name = MODULE_NAME,
 };
 
-DocumentMeta** test_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, void* userData)
+RequestReturn* test_fill_meta_in(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
 {
 	(void)meta;
 	(void)maxCount;
@@ -44,21 +44,17 @@ DocumentMeta** test_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t
 		sci_module_log(LL_WARN, "A request for 0 results was given");
 		return NULL;
 	}
-
-	*count = 1;
-	DocumentMeta** ret = g_malloc0(sizeof(*ret));
-	ret[0] = document_meta_new();
+	RequestReturn* ret = request_return_new(1, maxCount);
 	return ret;
 }
 
 char* test_get_document_text_in(const DocumentMeta* meta, void* userData)
 {
-	size_t count;
 	(void)userData;
-	DocumentMeta** results = sci_fill_meta(meta, NULL, &count, 1, 0);
+	RequestReturn* results = sci_fill_meta(meta, NULL, 1, 0);
 	if(results)
 	{
-		document_meta_free_list(results, count);
+		request_return_free(results);
 		return g_strdup("Quia blanditiis omnis aliquam pariatur. Aut est reiciendis omnis et. \
 		Placeat ea officia laborum eum vel adipisci deleniti. Earum aut eveniet minima libero itaque nisi quia.");
 	}

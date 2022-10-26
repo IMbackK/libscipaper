@@ -136,7 +136,7 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta);
 
 /**
  * @brief Frees a document meta struct
- * @param meta The DocumentMeta struct to free
+ * @param meta The DocumentMeta struct to free, it is safe to pass NULL here
  */
 void document_meta_free(DocumentMeta* meta);
 
@@ -156,9 +156,36 @@ char* document_meta_get_string(const DocumentMeta* meta);
 
 /**
  * @brief Frees a list/array of document metas
- * @param meta The DocumentMeta array to free
+ * @param meta The DocumentMeta array to free, it is safe to pass NULL here
  */
 void document_meta_free_list(DocumentMeta** meta, size_t length);
+
+/**
+ * @brief This struct is details the result of a metadata search.
+ * it contains a series of DocumentMeta structs as well as infromation about the query.
+ * This struct must be freed with request_return_free()
+ */
+typedef struct _RequestReturn {
+	DocumentMeta** documents; /**< A array of document meta structs detailing the search results */
+	size_t count; /**< The length of the DocumentMeta array */
+	size_t maxCount; /**< The maximum number of search results to be presented, as requested by the interface user */
+	size_t page; /**< The page that was requested */
+	size_t totalCount; /**< The total nummber of search results found by the backend, 0 if this information is not supported by the backend*/
+} RequestReturn;
+
+/**
+ * @brief Allocates a empty RequestReturn struct
+ * @param count nummber of DocumentMeta structs this struct contains
+ * @param maxCount maximum number of DocumentMeta structs requested by interface user
+ * @return a newly allocated RequestReturn struct, to be freed with request_return_free()
+ */
+RequestReturn* request_return_new(size_t count, size_t maxCount);
+
+/**
+ * @brief Frees a RequestReturn struct
+ * @param reqRet The RequestReturn to free, it is safe to pass NULL here
+ */
+void request_return_free(RequestReturn* reqRet);
 
 /**
  * @brief This struct contains the raw data of a pdf document
@@ -172,7 +199,7 @@ typedef struct _PdfData
 
 /**
  * @brief Frees a PdfData struct
- * @param data The PdfData struct to free
+ * @param data The PdfData struct to free, it is safe to pass NULL here
  */
 void pdf_data_free(PdfData* data);
 

@@ -252,6 +252,33 @@ void sci_conf_free_conf_file(gpointer keyfileptr)
 }
 
 /**
+ * Read configuration from raw memory
+ *
+ * @param data Pointer to raw data to read
+ * @param length length of data
+ * @return A keyfile pointer on success, NULL on failure
+ */
+gpointer sci_conf_read_conf_bytes(const char* data, size_t length)
+{
+	GError *error = NULL;
+	GKeyFile *keyfileptr;
+
+	if((keyfileptr = g_key_file_new()) == NULL)
+		return NULL;
+
+	if(!g_key_file_load_from_data(keyfileptr, data, length, G_KEY_FILE_NONE, &error)) {
+		sci_conf_free_conf_file(keyfileptr);
+		keyfileptr = NULL;
+		sci_log(LL_DEBUG, "sci-conf: Could not load keyfile from supplied raw data %s",
+			error->message);
+	}
+
+	g_clear_error(&error);
+
+	return keyfileptr;
+}
+
+/**
  * Read configuration file
  *
  * @param conffile The full path to the configuration file to read
@@ -263,19 +290,16 @@ gpointer sci_conf_read_conf_file(const gchar *const conffile)
 	GKeyFile *keyfileptr;
 
 	if ((keyfileptr = g_key_file_new()) == NULL)
-		goto EXIT;
+		return NULL;
 
 	if (g_key_file_load_from_file(keyfileptr, conffile,
-				      G_KEY_FILE_NONE, &error) == FALSE)
-	{
+				      G_KEY_FILE_NONE, &error) == FALSE) {
 		sci_conf_free_conf_file(keyfileptr);
 		keyfileptr = NULL;
 		sci_log(LL_DEBUG, "sci-conf: Could not load %s; %s",
 			conffile, error->message);
-		goto EXIT;
 	}
 
-EXIT:
 	g_clear_error(&error);
 
 	return keyfileptr;
@@ -297,9 +321,13 @@ static bool sci_conf_is_ini_file(const char *filename)
  *
  * @return TRUE on success, FALSE on failure
  */
-bool sci_conf_init(const char* fileName)
+bool sci_conf_init(const char* fileName, const char* data, size_t length)
 {
-	sci_conf_file_count = fileName ? 2 : 1;
+	sci_conf_file_count = 1;
+	if(fileName)
+		++sci_conf_file_count;
+	if(data)
+		++sci_conf_file_count;
 	size_t index = 0;
 
 	conf_files = calloc(sci_conf_file_count, sizeof(*conf_files));
@@ -330,19 +358,37 @@ bool sci_conf_init(const char* fileName)
 			gpointer application_conf_file = sci_conf_read_conf_file(conf_files[1].path);
 			if (application_conf_file == NULL)
 			{
-				sci_log(LL_ERR, "sci-conf: failed to open main config file %s %s",
+				sci_log(LL_ERR, "sci-conf: failed to open config file %s %s",
 						conf_files[index].path, g_strerror(errno));
 				g_free(conf_files[index].filename);
 				g_free(conf_files[index].path);
 				--sci_conf_file_count;
 			}
-			conf_files[index].keyfile = application_conf_file;
+			else
+			{
+				conf_files[index].keyfile = application_conf_file;
+				++index;
+			}
 		}
 		else
 		{
 			--sci_conf_file_count;
 			sci_log(LL_ERR, "sci-conf: conf file %s is not an ini file!", fileName);
 		}
+	}
+
+	if(data)
+	{
+		conf_files[index].filename = g_strdup("RAM");
+		conf_files[index].path     = g_strdup("RAM");
+		gpointer application_conf_file = sci_conf_read_conf_bytes(data, length);
+		if (application_conf_file == NULL)
+		{
+			g_free(conf_files[index].filename);
+			g_free(conf_files[index].path);
+			--sci_conf_file_count;
+		}
+		conf_files[index].keyfile = application_conf_file;
 	}
 
 	if(sci_conf_file_count == 0)

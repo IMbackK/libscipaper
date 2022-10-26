@@ -46,12 +46,11 @@ void sci_log_set_verbosity(loglevel_t verbosity);
  * @param meta A DocumentMeta struct with at least one value set.
  * If backendId == 0 all backends will be checked until one can indentify the document otherwise the backend with the id backendId will be used
  * @param fill A pointer to a FillReqest struct that discribes what fields are required by user, can be NULL for "dont care"
- * @param count A pointer where the nummber of found documents that match meta is stored
  * @param maxCount maximum number of documents to match
  * @param page if page is set > 0, the first page*maxCount entries are skipped and the subsiquent results are returned instead
- * @return A list of filled DocumentMetas, to be freed with document_meta_free_list(), or NULL if none could be found
+ * @return A RequestReturn, to be freed with request_return_free(), or NULL if none could be found
  */
-DocumentMeta** sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t* count, size_t maxCount, size_t page);
+RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t maxCount, size_t page);
 
 /**
  * @brief Tries to find the metadata of the document with the given doi
@@ -74,21 +73,19 @@ DocumentMeta* sci_find_by_title(const char* title);
  * @brief Tries to find the documents by a certain author
  *
  * @param author Author to search for
- * @param count A pointer where the nummber of found documents that match meta is stored
  * @param maxCount maximum number of documents to match
- * @return A list of filled DocumentMetas, to be freed with document_meta_free_list(), or NULL if none could be found
+ * @return A RequestReturn, to be freed with request_return_free(), or NULL if none could be found
  */
-DocumentMeta** sci_find_by_author(const char* author, size_t* count, size_t maxCount);
+RequestReturn* sci_find_by_author(const char* author, size_t maxCount);
 
 /**
  * @brief Tries to find the documents by in a certain journal
  *
  * @param jornal journal to search for
- * @param count A pointer where the nummber of found documents that match meta is stored
  * @param maxCount maximum number of documents to match
- * @return A list of filled DocumentMetas, to be freed with document_meta_free_list(), or NULL if none could be found
+ * @return A list of filled RequestReturn, to be freed with request_return_free(), or NULL if none could be found
  */
-DocumentMeta** sci_find_by_journal(const char* jornal, size_t* count, size_t maxCount);
+RequestReturn* sci_find_by_journal(const char* jornal, size_t maxCount);
 
 /**
  * @brief Tries to get the full text of a certain document

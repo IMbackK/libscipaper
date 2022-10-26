@@ -30,8 +30,6 @@ extern "C" {
 * @{
 */
 
-/**@{*/
-
 /**
  * Get a boolean configuration value
  *
@@ -91,13 +89,30 @@ gchar *sci_conf_get_string(const gchar *group, const gchar *key,
  */
 gchar **sci_conf_get_string_list(const gchar *group, const gchar *key,
 				 gsize *length, gpointer keyfileptr);
-/**@}*/
-/**@}*/
 
+
+/**
+ * Read configuration file
+ *
+ * @param conffile The full path to the configuration file to read
+ * @return A keyfile pointer on success, NULL on failure
+ */
 gpointer sci_conf_read_conf_file(const gchar *const conffile);
+
+/**
+ * Read configuration from raw memory
+ *
+ * @param data Pointer to raw data to read
+ * @param length length of data
+ * @return A keyfile pointer on success, NULL on failure
+ */
+gpointer sci_conf_read_conf_bytes(const char* data, size_t length);
+
 void sci_conf_free_conf_file(gpointer keyfileptr);
 
-bool sci_conf_init(const char* fileName);
+/**@}*/
+
+bool sci_conf_init(const char* fileName, const char* data, size_t length);
 void sci_conf_exit(void);
 
 #ifdef __cplusplus

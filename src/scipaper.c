@@ -27,11 +27,11 @@
 #include "sci-modules.h"
 #include "scipaper.h"
 
-bool sci_paper_init(const char* config_file)
+bool sci_paper_init(const char* config_file, const char* data, size_t length)
 {
 	sci_log_open("libscipaper", LOG_USER, SCI_LOG_STDERR);
 
-	if(!sci_conf_init(config_file))
+	if(!sci_conf_init(config_file, data, length))
 		return false;
 
 	if(!sci_modules_init())
@@ -54,12 +54,11 @@ DocumentMeta* sci_find_by_doi(const char* doi, int backendId)
 	DocumentMeta meta = {0};
 	meta.doi = (char*)doi;
 	meta.backendId = backendId;
-	size_t count;
-	DocumentMeta** documentMetas = sci_fill_meta(&meta, NULL, &count, 1, 0);
-	if(documentMetas)
+	RequestReturn* documents = sci_fill_meta(&meta, NULL, 1, 0);
+	if(documents)
 	{
-		DocumentMeta* meta = documentMetas[0];
-		g_free(documentMetas);
+		DocumentMeta* meta = document_meta_copy(documents->documents[0]);
+		request_return_free(documents);
 		return meta;
 	}
 	else
@@ -68,23 +67,22 @@ DocumentMeta* sci_find_by_doi(const char* doi, int backendId)
 	}
 }
 
-DocumentMeta** sci_find_by_author(const char* author, size_t* count, size_t maxCount)
+RequestReturn* sci_find_by_author(const char* author, size_t maxCount)
 {
 	DocumentMeta meta = {0};
 	meta.author = (char*)author;
-	return sci_fill_meta(&meta, NULL, count, maxCount, 0);
+	return sci_fill_meta(&meta, NULL, maxCount, 0);
 }
 
 DocumentMeta* sci_find_by_title(const char* title)
 {
 	DocumentMeta meta = {0};
 	meta.title = (char*)title;
-	size_t count;
-	DocumentMeta** documentMetas = sci_fill_meta(&meta, NULL, &count, 1, 0);
-	if(documentMetas)
+	RequestReturn* documents = sci_fill_meta(&meta, NULL, 1, 0);
+	if(documents)
 	{
-		DocumentMeta* meta = documentMetas[0];
-		g_free(documentMetas);
+		DocumentMeta* meta = document_meta_copy(documents->documents[0]);
+		request_return_free(documents);
 		return meta;
 	}
 	else
@@ -93,11 +91,11 @@ DocumentMeta* sci_find_by_title(const char* title)
 	}
 }
 
-DocumentMeta** sci_find_by_journal(const char* jornal, size_t* count, size_t maxCount)
+RequestReturn* sci_find_by_journal(const char* jornal, size_t maxCount)
 {
 	DocumentMeta meta = {0};
 	meta.journal = (char*)jornal;
-	return sci_fill_meta(&meta, NULL, count, maxCount, 0);
+	return sci_fill_meta(&meta, NULL, maxCount, 0);
 }
 
 bool sci_save_pdf_to_file(const PdfData* data, const char* fileName)

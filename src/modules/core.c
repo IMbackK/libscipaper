@@ -138,10 +138,10 @@ static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePr
 	return result;
 }
 
-DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, void* userData)
+static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
 {
 	struct CorePriv* priv = userData;
-	DocumentMeta** results = NULL;
+	RequestReturn* results = NULL;
 
 	if(maxCount == 0)
 	{
@@ -213,14 +213,15 @@ DocumentMeta** core_fill_meta(const DocumentMeta* meta, size_t* count, size_t ma
 			g_string_free(jsonText, true);
 			return results;
 		}
-		*count = (size_t)resutlsArray->length;
 
-		results = g_malloc0(sizeof(*results)*(*count));
+		results = request_return_new((size_t)resutlsArray->length, maxCount);
+		results->page = (size_t)(nx_json_get(json, "offset")->int_value/maxCount);
+		results->totalCount = (size_t)nx_json_get(json, "totalHits")->int_value;
 
-		for(size_t i = 0; i < *count; ++i)
+		for(size_t i = 0; i < results->count; ++i)
 		{
 			const nx_json* item = nx_json_item(resutlsArray, i);
-			results[i] = core_parse_document_meta(item, priv);
+			results->documents[i] = core_parse_document_meta(item, priv);
 		}
 
 		nx_json_free(json);
@@ -241,16 +242,15 @@ char* core_get_document_text(const DocumentMeta* meta, void* userData)
 	}
 	else
 	{
-		size_t count;
-		DocumentMeta** metas = core_fill_meta(meta, &count, 1, 0, priv);
+		RequestReturn* metas = core_fill_meta(meta, 1, 0, priv);
 		if(!metas)
 		{
 			return NULL;
 		}
 		else
 		{
-			char* text = g_strdup(((struct CoreData*)metas[0]->backendData)->fullText);
-			document_meta_free_list(metas, count);
+			char* text = g_strdup(((struct CoreData*)metas->documents[0]->backendData)->fullText);
+			request_return_free(metas);
 			return text;
 		}
 	}

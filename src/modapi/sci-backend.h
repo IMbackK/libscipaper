@@ -34,7 +34,7 @@ Api for use by libscipaper modules.
  * @param user_data a point for context that will be passed to fill_meta_in, get_document_text_in, and get_document_pdf_data_in when called
  * @return backend id that is to be given in DocumentMeta backendId as well as input for sci_plugin_unregister()
  */
-int sci_plugin_register(const BackendInfo* backend_info, DocumentMeta** (*fill_meta_in)(const DocumentMeta*, size_t*, size_t, size_t, void*),
+int sci_plugin_register(const BackendInfo* backend_info, RequestReturn* (*fill_meta_in)(const DocumentMeta*, size_t, size_t, void*),
 						char* (*get_document_text_in)(const DocumentMeta*, void*),
 						PdfData* (*get_document_pdf_data_in)(const DocumentMeta*, void*), void* user_data);
 

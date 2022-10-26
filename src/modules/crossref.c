@@ -192,7 +192,7 @@ static DocumentMeta* cf_parse_work_json(const nx_json* json, const DocumentMeta*
 	return meta;
 }
 
-static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, struct CrPriv* priv)
+static RequestReturn* cf_fill_from_doi(const DocumentMeta* meta, struct CrPriv* priv)
 {
 	GString* url = g_string_new(CROSSREF_URL_DOMAIN);
 	g_string_append(url, CROSSREF_METHOD_WORKS);
@@ -203,7 +203,7 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	GString* jsonText = wgetUrl(url->str, priv->timeout);
 	g_string_free(url, true);
 
-	DocumentMeta** ret = NULL;
+	RequestReturn* ret = NULL;
 	DocumentMeta* filledMeta = NULL;
 
 	if(jsonText)
@@ -220,9 +220,9 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	if(filledMeta)
 	{
 		filledMeta->backendId = priv->id;
-		*count = 1;
-		ret = g_malloc0(sizeof(*ret));
-		ret[0] = filledMeta;
+		ret = request_return_new(1, 1);
+		ret->totalCount = 1;
+		ret->documents[0] = filledMeta;
 	}
 	else
 	{
@@ -235,7 +235,7 @@ static DocumentMeta** cf_fill_from_doi(size_t* count, const DocumentMeta* meta, 
 	return ret;
 }
 
-static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, struct CrPriv* priv)
+static RequestReturn* cf_fill_try_work_query(const DocumentMeta* meta, size_t maxCount, size_t page, struct CrPriv* priv)
 {
 	GSList* queryList = NULL;
 
@@ -265,7 +265,7 @@ static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* c
 	g_free(intStr);
 	queryList = g_slist_prepend(queryList, pair_new("select", CROSSREF_SELECT));
 
-	DocumentMeta** documents = NULL;
+	RequestReturn* documents = NULL;
 
 	GString* url = cf_create_url(priv, CROSSREF_METHOD_WORKS, queryList);
 	sci_module_log(LL_DEBUG, "%s: %s", __func__, url->str);
@@ -284,23 +284,23 @@ static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* c
 			const nx_json* arrayNode = nx_json_get(messageNode, "items");
 			if(arrayNode->type == NX_JSON_ARRAY)
 			{
-				size_t resultCount = arrayNode->length < maxCount ? arrayNode->length : maxCount;
-				documents = g_malloc0(sizeof(*documents)*resultCount);
-				for(size_t i = 0; i < resultCount; ++i)
+				documents = request_return_new(arrayNode->length < maxCount ? arrayNode->length : maxCount, maxCount);
+				documents->page = page;
+				documents->totalCount = totalResults;
+				for(size_t i = 0; i < documents->count; ++i)
 				{
 					const nx_json* item = nx_json_item(arrayNode, i);
 					if(item->type != NX_JSON_NULL)
 					{
-						documents[i] = cf_parse_work_json(item, NULL, priv);
-						documents[i]->backendId = priv->id;
+						documents->documents[i] = cf_parse_work_json(item, NULL, priv);
+						documents->documents[i]->backendId = priv->id;
 					}
 					else
 					{
-						documents[i] = NULL;
+						documents->documents[i] = NULL;
 						sci_module_log(LL_WARN, "%s: invalid array item", __func__);
 					}
 				}
-				*count = resultCount;
 			}
 			else
 			{
@@ -314,7 +314,7 @@ static DocumentMeta** cf_fill_try_work_query(const DocumentMeta* meta, size_t* c
 	return documents;
 }
 
-static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, size_t page, void* userData)
+static RequestReturn* cf_fill_meta_in(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
 {
 	struct CrPriv* priv = userData;
 	if(maxCount == 0)
@@ -324,9 +324,9 @@ static DocumentMeta** cf_fill_meta_in(const DocumentMeta* meta, size_t* count, s
 	}
 
 	if(meta->doi)
-		return cf_fill_from_doi(count, meta, priv);
+		return cf_fill_from_doi(meta, priv);
 
-	return cf_fill_try_work_query(meta, count, maxCount, page, priv);
+	return cf_fill_try_work_query(meta, maxCount, page, priv);
 }
 
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);

@@ -21,15 +21,15 @@
 #include <glib.h>
 #include "scipaper.h"
 
-static void print_documents(DocumentMeta** documents, size_t count)
+static void print_documents(const RequestReturn* documents)
 {
-	printf("Found %zu documents:\n", count);
-	for(size_t i = 0; i < count; ++i)
+	printf("Found %zu documents:\n", documents->count);
+	for(size_t i = 0; i < documents->count; ++i)
 	{
-		if(!documents[i])
+		if(!documents->documents[i])
 			continue;
-		char* documentString = document_meta_get_string(documents[i]);
-		printf("Document found by %s:\n%s", sci_get_backend_info(documents[i]->backendId)->name, documentString);
+		char* documentString = document_meta_get_string(documents->documents[i]);
+		printf("Document found by %s:\n%s", sci_get_backend_info(documents->documents[i]->backendId)->name, documentString);
 		free(documentString);
 	}
 }
@@ -44,27 +44,27 @@ static void search_and_grab_wallauer_via_core()
 		return;
 	}
 
-	size_t count;
 	DocumentMeta* queryMeta = document_meta_new();
 	queryMeta->author = g_strdup("Wallauer");
 	queryMeta->hasFullText = true;
 	queryMeta->backendId = id;
-	DocumentMeta** documents = sci_fill_meta(queryMeta, NULL, &count, 20, 0);
+	RequestReturn* documents = sci_fill_meta(queryMeta, NULL, 20, 0);
 	document_meta_free(queryMeta);
 
 	if(documents)
 	{
-		print_documents(documents, count);
+		print_documents(documents);
 
-		printf("Getting text for first document from: %s (%i)\n", sci_get_backend_name(documents[0]->backendId), documents[0]->backendId);
-		char* text = sci_get_document_text(documents[0]);
+		printf("Getting text for first document from: %s (%i)\n",
+			   sci_get_backend_name(documents->documents[0]->backendId), documents->documents[0]->backendId);
+		char* text = sci_get_document_text(documents->documents[0]);
 		if(text)
 			puts("got text!");
 		free(text);
 
-		for(size_t i = 0; i < count; ++i)
+		for(size_t i = 0; i < documents->count; ++i)
 		{
-			PdfData* data = sci_get_document_pdf_data(documents[i]);
+			PdfData* data = sci_get_document_pdf_data(documents->documents[i]);
 			if(data)
 			{
 				puts("got got data! saveing..");
@@ -77,7 +77,7 @@ static void search_and_grab_wallauer_via_core()
 					puts("not saved");
 			}
 		}
-		document_meta_free_list(documents, count);
+		request_return_free(documents);
 	}
 	else
 	{
@@ -92,15 +92,14 @@ static void search_wallauer(void)
 	DocumentMeta* queryMeta = document_meta_new();
 	queryMeta->author = g_strdup("Wallauer");
 
-	size_t count;
-	DocumentMeta** documents = sci_fill_meta(queryMeta, NULL, &count, 20, 0);
+	RequestReturn* documents = sci_fill_meta(queryMeta, NULL, 20, 0);
 
 	document_meta_free(queryMeta);
 
 	if(documents)
 	{
-		print_documents(documents, count);
-		document_meta_free_list(documents, count);
+		print_documents(documents);
+		request_return_free(documents);
 	}
 	else
 	{
@@ -139,7 +138,7 @@ int main(int argc, char** argv)
 
 	sci_log_set_verbosity(LL_DEBUG);
 
-	if(!sci_paper_init(configFileName))
+	if(!sci_paper_init(configFileName, NULL, 0))
 	{
 		printf("Coult not init libscipaper");
 		return 1;

@@ -26,7 +26,7 @@
 
 struct SciBackend
 {
-	DocumentMeta** (*fill_meta)(const DocumentMeta* meta, size_t* count, size_t page, size_t maxCount, void* user_data);
+	RequestReturn* (*fill_meta)(const DocumentMeta* meta, size_t page, size_t maxCount, void* user_data);
 	char* (*get_document_text)(const DocumentMeta* meta, void* user_data);
 	PdfData* (*get_document_pdf_data)(const DocumentMeta* meta, void* user_data);
 	int id;
@@ -97,7 +97,7 @@ size_t sci_get_backend_count(void)
 }
 
 int sci_plugin_register(const BackendInfo* backend_info,
-						DocumentMeta** (*fill_meta_in)(const DocumentMeta* meta, size_t* count, size_t page, size_t maxCount, void* user_data),
+						RequestReturn* (*fill_meta_in)(const DocumentMeta* meta, size_t page, size_t maxCount, void* user_data),
 						char* (*get_document_text_in)(const DocumentMeta* meta, void* user_data),
 						PdfData* (*get_document_pdf_data_in)(const DocumentMeta* meta, void* user_data), void* user_data)
 {
@@ -196,7 +196,7 @@ static void sci_compleat_fill_meta(DocumentMeta* meta, const FillReqest* fill)
 	}
 }
 
-DocumentMeta** sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t* count, size_t maxCount, size_t page)
+RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t maxCount, size_t page)
 {
 	if(meta->backendId != 0 && fill)
 	{
@@ -210,22 +210,21 @@ DocumentMeta** sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 		struct SciBackend* backend = element->data;
 		if(backend->fill_meta && (meta->backendId == backend->id || meta->backendId == 0))
 		{
-			DocumentMeta** newMeta = backend->fill_meta(meta, count, maxCount, page, backend->user_data);
-			if(newMeta)
+			RequestReturn* newMetas = backend->fill_meta(meta, maxCount, page, backend->user_data);
+			if(newMetas)
 			{
-				for(size_t i = 0; i < *count; ++i)
+				for(size_t i = 0; i < newMetas->count; ++i)
 				{
-					document_meta_combine(newMeta[i], meta);
-					if(meta->backendId == 0 && !isFilledAsRequested(meta, fill))
-						sci_compleat_fill_meta(newMeta[i], fill);
-					newMeta[i]->compleatedLookup = true;
+					document_meta_combine(newMetas->documents[i], meta);
+					if(meta->backendId == 0 && !isFilledAsRequested(newMetas->documents[i], fill))
+						sci_compleat_fill_meta(newMetas->documents[i], fill);
+					newMetas->documents[i]->compleatedLookup = true;
 				}
-				return newMeta;
+				return newMetas;
 			}
 		}
 	}
 	sci_log(LL_WARN, "%s: Unable to fill meta", __func__);
-	count = 0;
 	return NULL;
 }
 
