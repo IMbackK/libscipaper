@@ -4,19 +4,40 @@ libscipaper is a shared library that allows you to get metadata to scientific pa
 When queried libscipaper will ask eatch of its backends to the database services to try and fill in information about the requested paper in order of the priority given in scipaper.ini or in the order requested by the user of the \ref API
 libscipaper also allows you to get full text as well as pdf files for scientific papers where they are availble.
 
-For questions or comments, as well as help with the usage of the plugin API contact
+libscipaper is a modular library with eatch database backend provided by a plugin.
+currently libscipaper has two finished backend plugins:
+- A core.ac.uk plugin
+- A crossref plugin
+
+For questions or comments, as well as help with the usage of the plugin API contact carl@uvos.xyz
 
 This manual is divided in the following sections depending on if you want to use libscipaper in your application or write a plugin for it:
-- \subpage userapi
-- \subpage pluginapi
+- \subpage userAPI
+- \subpage pluginAPI
 */
 
 //-----------------------------------------------------------
 
-/*! \page userapi User API
-This api porvides the external functionality required to use libscipaper in your application to get document metadata as well as full text.
+/*! \page userAPI User API
+This API porvides the external functionality required to use libscipaper in your application to get document metadata as well as full text.
 
-Full api documentation can be found in the module description \ref API
+The gist of the API to query a paper or multiple papers is:
+
+1. Edit scipaper.ini to provide your API keys and other information to libscipaper
+	- provide your edited .ini file to libscipaper via the parameters to sci_paper_init()
+2. Create a DocumentMeta struct with document_meta_new()
+	- fill any combination of fields you would like to search for like for instance .author = "Klemm" and .abstract = "String theory".
+	- all filled fields will be AND'ed in your seatch
+3. Optionally, if you require that the results libscipaper returns must contain specific metadata fields you can also add a FillReqest and set the appropriate bits for the fields you require
+	- This will cause libscipaper to not return with the result from first backend that manages to fill your search query, instead libscipaper will continue aggregating the results from all backends untill all your requested fields are found or libscipaper runs out of backends.
+4. Query libscipaper for documents matching your DocumentMeta struct with sci_fill_meta() getting a RequestReturn struct in return
+5. Loop over the DocumentMeta structs in the RequestReturn and select some papers that interest you
+6. You can grab the full text of the papers in question by calling sci_get_document_text(), sci_get_document_pdf_data() or sci_save_pdf_to_file()
+7. You can save your results to disk via document_meta_save()
+
+Usually the default beahvior of scipaper returning the result from the first backend that matches your query is what you want, but if this is not what you want, you can specify a backend for libscipaper to use by setting the backendId varaible in your DocumentMeta query struct to the id of a backend found with sci_get_all_backends() or sci_backend_get_id_by_name()
+
+Full API documentation can be found here: \ref API
 
 ## Example usage:
 _______
@@ -26,9 +47,11 @@ _______
     #include <stdbool.h>
     #include <scipaper/scipaper.h>
 
+    #define MAX_RESULTS 200
+
     int main(int argc, char** argv)
     {
-    	bool ret = sci_paper_init(NULL);
+    	bool ret = sci_paper_init(NULL, NULL, 0);
     	if(!ret)
     	{
     		printf("Could not init libscipaper");
@@ -38,20 +61,20 @@ _______
     	char doi[] = "10.1109/DSP-SPE.2011.5739265";
     	DocumentMeta meta;
     	meta.doi = doi;
-    	size_t count;
-    	DocumentMeta** filledMetas = sci_fill_meta(&meta, &count, 1);
+    	RequestReturn* filledMetas =  sci_fill_meta(&meta, NULL, MAX_RESULTS, 0);
 
-    	if(count > 0)
+    	if(filledMetas)
     	{
+    		printf("Found %i documents that match\n", filledMetas->count);
     		printf("Found document with doi of: %s\n", doi);
-    		if(filledMetas[0]->title)
-    			printf("Title: %s\n", filledMetas[0]->title);
-    		if(filledMetas[0]->author)
-    			printf("Author: %s\n", filledMetas[0]->author);
-    		if(filledMetas[0]->journal)
-    			printf("Journal: %s\n", filledMetas[0]->journal);
+    		if(filledMetas->documents[0]->title)
+    			printf("Title: %s\n", filledMetas->documents[0]->title);
+    		if(filledMetas->documents[0]->author)
+    			printf("Author: %s\n", filledMetas->documents[0]->author);
+    		if(filledMetas->documents[0]->journal)
+    			printf("Journal: %s\n", filledMetas->documents[0]->journal);
 
-    		bool saved = sci_save_document_to_pdf(filledMetas[0], "out.pdf");
+    		bool saved = sci_save_document_to_pdf(filledMetas->documents[0], "out.pdf");
     		if(saved)
     			printf("Was able to save pdf of document\n");
     		else
@@ -62,7 +85,8 @@ _______
     		printf("Unable to find document with doi of: %s\n", doi);
     	}
 
-    	document_meta_free_list(filledMetas, count);
+    	request_return_free(filledMetas);
+    	sci_paper_exit();
     	return 0;
     }
 
@@ -71,14 +95,14 @@ _______
 
 //-----------------------------------------------------------
 
-/*! \page pluginapi Plugin API
-	This api porvides the ability to write a pulgin that implements a backend to a database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases.
+/*! \page pluginAPI Plugin API
+	This API porvides the ability to write a pulgin that implements a backend any database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases.
 
-	Full api documentation can be found in the module description \ref MODAPI
+	Full documentation can be found here: \ref MODAPI
 
-	A libscipaper module is a c tanslation unit that contains `#define MODULE_NAME "some-name"` as well as exporting the symbols \ref module_info_struct, sci_module_init of type \ref sci_module_init_fn and sci_module_exit of type \ref sci_module_exit_fn.
+	A libscipaper module is a C or C++ tanslation unit that contains `#define MODULE_NAME "some-name"` as well as exporting the symbols sci_module_init of type \ref sci_module_init_fn and sci_module_exit of type \ref sci_module_exit_fn.
 
-	modules are expeted to use the `sci_conf_*` family of functions to gain external site specific information sutch as api keys and use \ref sci_module_log for debug as well as error output. Any library such as libcurl may be used to gather information in the struct.
+	modules are expected to use the `sci_conf_*` family of functions to gain external site specific information sutch as API keys and use \ref sci_module_log for debug as well as error output. Any library such as libcurl may be used to gather information to be returned.
 
 	For a module to be usefull it must also define an implementation at least one of the following functions:
 
@@ -90,6 +114,7 @@ _______
 
 	thus the basic structure of a libscipaper plugin looks like this:
 @code
+#include <glib.h>
 #include "sci-modules.h"
 #include "sci-log.h"
 #include "sci-backend.h"
@@ -99,39 +124,54 @@ _______
 #define MODULE_NAME		"test"
 
 //Module information every module is required to have this
-G_MODULE_EXPORT module_info_struct module_info = {
+static BackendInfo module_info = {
 	//Name of the module
 	.name = MODULE_NAME,
+	.capabilities = SCI_CAP_FILL | SCI_CAP_GET_TEXT | SCI_CAP_GET_PDF
 };
 
-DocumentMeta** test_fill_meta_in(const DocumentMeta* meta, size_t* count, size_t maxCount, void* userData)
+struct TestPriv {
+	int id;
+};
+
+static RequestReturn* test_fill_meta(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
 {
+	struct TestPriv* priv = userData;
 	//Check out the the contense of meta here and search for the contained fields in your database, return a list DocumentMeta structs that describe the search results
+	return request_return_new(1, maxCount);
 }
 
-char* test_get_document_text_in(const DocumentMeta* meta, void* userData)
+static char* test_get_document_text(const DocumentMeta* meta, void* userData)
 {
+	struct TestPriv* priv = userData;
 	//Check out the the contense of meta here and search for the contained fields in your database, return the full text of the first search result.
+	return g_strdup("This should be the document text");
 }
 
-unsigned char* test_get_document_pdf_data_in(const DocumentMeta* meta, void* userData)
+static PdfData* test_get_document_pdf_data(const DocumentMeta* meta, void* userData)
 {
+	struct TestPriv* priv = userData;
 	//Check out the the contense of meta here and search for the contained fields in your database, return raw pdf binary data for the first search result.
+	return NULL;
 }
 
-
-//function that is called when the module is loaded, every modul is required to have this
+//function that is called when the module is loaded, every module is required to have this
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);
 const gchar *sci_module_init(void** data)
 {
 	//Do whatever is nessecary to initalise your database.
+	struct TestPriv* priv = g_malloc0(sizeof(*priv));
+	*data = priv;
+	priv->id = sci_plugin_register(&module_info, test_fill_meta, test_get_document_text, test_get_document_pdf_data, priv);
 }
 
-//function that is called when the module is unloaded, every modul is required to have this
+//function that is called when the module is unloaded, every module is required to have this
 G_MODULE_EXPORT void sci_module_exit(void* data);
 void sci_module_exit(void* data)
 {
+	struct TestPriv* priv = data;
 	//Free any resources you have aquired.
+	g_free(priv);
 }
 @endcode
 */
