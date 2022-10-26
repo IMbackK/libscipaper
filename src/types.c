@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "sci-log.h"
+#include "utils.h"
 
 char* capability_flags_get_str(capability_flags_t capabilities)
 {
@@ -168,6 +169,101 @@ void document_meta_combine(DocumentMeta* target, const DocumentMeta* source)
 		target->downloadUrl =  g_strdup(source->downloadUrl);
 	if(!target->abstract)
 		target->abstract =  g_strdup(source->abstract);
+}
+
+char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length)
+{
+	*length = 0;
+	if(!meta)
+		return NULL;
+
+	GString* string = g_string_new("{\n");
+
+	GString* entry = createJsonEntry(1, "doi", meta->doi, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "url", meta->url, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	if(meta->year != 0)
+	{
+		char* yearStr = g_strdup_printf("%lu", meta->year);
+		entry = createJsonEntry(1, "year", yearStr, false, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
+
+	entry = createJsonEntry(1, "publisher", meta->publisher, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "volume", meta->volume, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "pages", meta->pages, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "author", meta->author, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "title", meta->title, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "journal", meta->journal, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "issn", meta->issn, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "keywords", meta->keywords, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "download-url", meta->downloadUrl, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "abstract", meta->abstract, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	entry = createJsonEntry(1, "full-text", fullText, true, true);
+	g_string_append(string, entry->str);
+	g_string_free(entry, true);
+
+	g_string_append(string, "}\n");
+
+	*length = string->len;
+	return string->str;
+}
+
+bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText)
+{
+	size_t length;
+	char* jsonText = document_meta_get_json(meta, fullText, &length);
+
+	if(jsonText)
+	{
+		GError *error = NULL;
+		bool ret = g_file_set_contents_full(fileName, (gchar*)jsonText, length, G_FILE_SET_CONTENTS_NONE, 0666, &error);
+		g_free(jsonText);
+		if(!ret)
+		{
+			sci_log(LL_ERR, "%s: %s", __func__, error->message);
+			g_error_free(error);
+			return false;
+		}
+		return true;
+	}
+	return false;
 }
 
 void pdf_data_free(PdfData* data)

@@ -156,7 +156,7 @@ const char* sci_get_backend_name(int id);
 size_t sci_get_backend_count(void);
 
 /**
- * @brief Inits libscipaper, this function must be your first call to libscipaper, besides sci_get_version()
+ * @brief Inits libscipaper, this function must be your first call to libscipaper, besides sci_get_version() and sci_log_set_verbosity()
  *
  * @param config_file An optional file name to a config ini file for libscipaper, or NULL
  * @param data An optional pointer to a keyfile in ram

@@ -153,8 +153,8 @@ int main(int argc, char** argv)
 		free(cap);
 	}
 
-	//search_wallauer();
-	//fill_meta_by_doi();
+	search_wallauer();
+	fill_meta_by_doi();
 	search_and_grab_wallauer_via_core();
 
 	sci_paper_exit();

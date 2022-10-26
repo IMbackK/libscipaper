@@ -164,6 +164,24 @@ void document_meta_combine(DocumentMeta* target, const DocumentMeta* source);
 char* document_meta_get_string(const DocumentMeta* meta);
 
 /**
+ * @brief Get string containing json data of the supplied DoucmentMeta
+ * @param meta The DocumentMeta struct to save into the string
+ * @param fullText Optionaly the full text associated with the DocumentMeta
+ * @param length length of the returned string containing the json data
+ * @return A newly allocated string containing the json data
+ */
+char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length);
+
+/**
+ * @brief Saves a DocumentMeta to disk
+ * @param fileName The file name unter which to save the DocumentMeta
+ * @param meta The DocumentMeta struct to save to disk
+ * @param fullText Optionaly the full text associated with the DocumentMeta
+ * @return true on sucess false on failure
+ */
+bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText);
+
+/**
  * @brief Frees a list/array of document metas
  * @param meta The DocumentMeta array to free, it is safe to pass NULL here
  */
