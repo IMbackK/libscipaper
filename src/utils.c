@@ -187,7 +187,9 @@ GString* createJsonEntry(const int indent, const char* key, const char* value, b
 	g_string_append_c(ret, ' ');
 	if(quote)
 		g_string_append_c(ret, '\"');
-	g_string_append(ret, value);
+	char* escapedValue = g_strescape(value, NULL);
+	g_string_append(ret, escapedValue);
+	g_free(escapedValue);
 	if(quote)
 		g_string_append_c(ret, '\"');
 	if(newline)
