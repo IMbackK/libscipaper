@@ -266,6 +266,39 @@ bool document_meta_save(const char* fileName, const DocumentMeta* meta, const ch
 	return false;
 }
 
+bool document_meta_is_equal(const DocumentMeta* a, const DocumentMeta* b)
+{
+	if(a == b)
+		return true;
+	if(!a || !b)
+		return false;
+
+	if(g_strcmp0(a->doi, b->doi) != 0)
+		return false;
+	if(g_strcmp0(a->url, b->url) != 0)
+		return false;
+	if(a->year != b->year)
+		return false;
+	if(g_strcmp0(a->publisher, b->publisher) != 0)
+		return false;
+	if(g_strcmp0(a->volume, b->volume) != 0)
+		return false;
+	if(g_strcmp0(a->pages, b->pages) != 0)
+		return false;
+	if(g_strcmp0(a->author, b->author) != 0)
+		return false;
+	if(g_strcmp0(a->title, b->title) != 0)
+		return false;
+	if(g_strcmp0(a->journal, b->journal) != 0)
+		return false;
+	if(g_strcmp0(a->issn, b->issn) != 0)
+		return false;
+	if(g_strcmp0(a->keywords, b->keywords) != 0)
+		return false;
+
+	return true;
+}
+
 void pdf_data_free(PdfData* data)
 {
 	document_meta_free(data->meta);

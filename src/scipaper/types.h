@@ -188,6 +188,15 @@ bool document_meta_save(const char* fileName, const DocumentMeta* meta, const ch
 void document_meta_free_list(DocumentMeta** meta, size_t length);
 
 /**
+ * @brief Compears to document metas and returns if they are equal.
+ * This function dosent tell you if a and b refer to the same document, it only tells you if the DocumentMetas are bitwise the same
+ * @param a A DocumentMeta struct
+ * @param b Another DocumentMeta struct to compear to a
+ * @return true if a and b are equal, false otherwise
+ */
+bool document_meta_is_equal(const DocumentMeta* a, const DocumentMeta* b);
+
+/**
  * @brief This struct is details the result of a metadata search.
  * it contains a series of DocumentMeta structs as well as infromation about the query.
  * This struct must be freed with request_return_free()
