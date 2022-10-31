@@ -2,6 +2,14 @@
 #include <glib.h>
 #include "types.h"
 
+/**
+* @addtogroup MODAPI
+* @{
+*/
+
+/**
+ * @brief A key value Pair struct to be used wih G(S)Lists
+ */
 struct Pair
 {
 	char* key;
@@ -24,7 +32,7 @@ void pair_free(struct Pair* pair);
 struct Pair* pair_new(const char* key, const char* value);
 
 /**
- * @brief Builds an escaped query string for a url
+ * @brief Builds an url encoded query string that can be added to a url
  *
  * @param list const list of struct Pairs of key=value querys to add.
  * @return A newly allocated GString containing the query string
@@ -32,7 +40,7 @@ struct Pair* pair_new(const char* key, const char* value);
 GString* buildQuery(const GSList* list);
 
 /**
- * @brief Get a pdf file
+ * @brief Get a pdf file va a http(s) GET request
  *
  * @param url The url to get
  * @return A newly PdfData struct or NULL if unsucessfull
@@ -40,7 +48,7 @@ GString* buildQuery(const GSList* list);
 PdfData* wgetPdf(const char* url, int timeout);
 
 /**
- * @brief Get the http data return as a string from a url via a GET request
+ * @brief Get the http data return as a string from a url via a http(s) GET request
  *
  * @param url The url to get
  * @return A newly allocated GString containing the data grabed from the url on sucess, or NULL on failure
@@ -48,7 +56,7 @@ PdfData* wgetPdf(const char* url, int timeout);
 GString* wgetUrl(const char* url, int timeout);
 
 /**
- * @brief Get the http data return as a string from a url via a POST request
+ * @brief Get the http data return as a string from a url via a http(s) POST request
  *
  * @param url The url to post
  * @param data null terminated string that contains the data to post to url
@@ -67,3 +75,5 @@ GString* wpostUrl(const char* url, const char* data, int timeout);
  * @return A newly allocated GString containing the data grabed from the url on sucess, or NULL on failure
  */
 GString* createJsonEntry(const int indent, const char* key, const char* value, bool quote, bool newline);
+
+/**@}*/

@@ -47,6 +47,10 @@ struct CorePriv
 	int rateLimit;
 	int id;
 	int timeout;
+	DocumentMeta* lastDocument;
+	char* scrollId;
+	int nextPage;
+	int lastMaxCount;
 };
 
 struct CoreData
@@ -169,17 +173,44 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		return NULL;
 	}
 
+	bool fastPage = false;
+	if(page == 0 || (document_meta_is_equal(meta, priv->lastDocument) &&
+		priv->lastMaxCount == maxCount && priv->nextPage == page && priv->scrollId))
+	{
+		if(page != 0)
+			sci_module_log(LL_DEBUG, "Using fast pageing for this request");
+		fastPage = true;
+	}
+	else if(page != 0)
+	{
+		sci_module_log(LL_DEBUG, "Using slow pageing for this request %s page: %i expected: %i %s %s",
+					document_meta_is_equal(meta, priv->lastDocument) ? "" : "metas are not equal",
+					page, priv->nextPage, priv->scrollId ? "" : "no scrollId stored",
+					priv->lastMaxCount == maxCount ? "" : "maxCounts are not equal");
+	}
+
 	if(meta->author || meta->title || meta->keywords || meta->searchText)
 	{
 		char* intStr = g_strdup_printf("%zu", maxCount);
 		GSList* queryList = g_slist_prepend(NULL, pair_new("limit", intStr));
 		g_free(intStr);
-		char* scrollStr = g_strdup_printf("%zu", page*maxCount);
-		queryList = g_slist_prepend(queryList, pair_new("offset", scrollStr));
-		g_free(scrollStr);
+		if(fastPage)
+		{
+			queryList = g_slist_prepend(queryList, pair_new("scroll", "true"));
+			if(page > 0 && priv->scrollId)
+				queryList = g_slist_prepend(queryList, pair_new("scrollId", priv->scrollId));
+		}
+		else
+		{
+			char* scrollStr = g_strdup_printf("%zu", page*maxCount);
+			queryList = g_slist_prepend(queryList, pair_new("offset", scrollStr));
+			g_free(scrollStr);
+		}
 		queryList = g_slist_prepend(queryList, pair_new("stats", "false"));
 
+
 		GString* searchString = g_string_new(NULL);
+
 		if(meta->author)
 		{
 			g_string_append(searchString, "authors:\"");
@@ -231,13 +262,27 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		}
 
 		results = request_return_new((size_t)resutlsArray->length, maxCount);
-		results->page = (size_t)(nx_json_get(json, "offset")->int_value/maxCount);
+		if(!fastPage)
+			results->page = (size_t)(nx_json_get(json, "offset")->int_value/maxCount);
+		else
+			results->page = page;
 		results->totalCount = (size_t)nx_json_get(json, "totalHits")->int_value;
 
 		for(size_t i = 0; i < results->count; ++i)
 		{
 			const nx_json* item = nx_json_item(resutlsArray, i);
 			results->documents[i] = core_parse_document_meta(item, priv);
+		}
+
+		if(fastPage)
+		{
+			sci_module_log(LL_DEBUG, "Saveing scrollId for next request");
+			priv->lastMaxCount = maxCount;
+			priv->nextPage = ++page;
+			document_meta_free(priv->lastDocument);
+			priv->lastDocument = document_meta_copy(meta);
+			g_free(priv->scrollId);
+			priv->scrollId = g_strdup(nx_json_get(json, "scrollId")->text_value);
 		}
 
 		nx_json_free(json);
@@ -334,5 +379,7 @@ void sci_module_exit(void* data)
 	struct CorePriv* priv = data;
 	sci_plugin_unregister(priv->id);
 	g_free(priv->apiKey);
+	g_free(priv->scrollId);
+	document_meta_free(priv->lastDocument);
 	g_free(priv);
 }

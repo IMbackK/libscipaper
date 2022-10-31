@@ -96,9 +96,7 @@ _______
 //-----------------------------------------------------------
 
 /*! \page pluginAPI Plugin API
-	This API porvides the ability to write a pulgin that implements a backend any database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases.
-
-	Full documentation can be found here: \ref MODAPI
+	This API porvides the ability to write a pulgin that implements a backend to any database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases. Full documentation can be found here: \ref MODAPI. For the convenience of module developers, a Jason parsing API is allso provided. This API is documented here:  \ref JSONAPI.
 
 	A libscipaper module is a C or C++ tanslation unit that contains `#define MODULE_NAME "some-name"` as well as exporting the symbols sci_module_init of type \ref sci_module_init_fn and sci_module_exit of type \ref sci_module_exit_fn.
 
