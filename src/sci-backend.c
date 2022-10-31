@@ -189,6 +189,9 @@ static void sci_compleat_fill_meta(DocumentMeta* meta, const FillReqest* fill)
 	for(GSList *element = backends; element; element = element->next)
 	{
 		struct SciBackend* backend = element->data;
+		if(backend->id == meta->backendId)
+			continue;
+		sci_log(LL_DEBUG, "try filling with %s", sci_get_backend_name(backend->id));
 		DocumentMeta* soruceMeta = sci_find_by_doi(meta->doi, backend->id);
 		document_meta_combine(meta, soruceMeta);
 		if(isFilledAsRequested(meta, fill))
@@ -217,7 +220,11 @@ RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 				{
 					document_meta_combine(newMetas->documents[i], meta);
 					if(meta->backendId == 0 && !isFilledAsRequested(newMetas->documents[i], fill))
+					{
+						sci_log(LL_DEBUG,
+							"%s: Document found by %s but uncompeat filling:", __func__, sci_get_backend_name(backend->id));
 						sci_compleat_fill_meta(newMetas->documents[i], fill);
+					}
 					newMetas->documents[i]->compleatedLookup = true;
 				}
 				return newMetas;
