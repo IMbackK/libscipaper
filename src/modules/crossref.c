@@ -209,12 +209,15 @@ static RequestReturn* cf_fill_from_doi(const DocumentMeta* meta, struct CrPriv* 
 	if(jsonText)
 	{
 		const nx_json* json = nx_json_parse_utf8(jsonText->str);
-		const nx_json* message = cf_get_message(json, "work");
-		if(message)
-			filledMeta = cf_parse_work_json(message, meta, priv);
-		else
-			sci_module_log(LL_WARN, "%s: got invalid entry without a message node", __func__);
-		nx_json_free(json);
+		if(json)
+		{
+			const nx_json* message = cf_get_message(json, "work");
+			if(message)
+				filledMeta = cf_parse_work_json(message, meta, priv);
+			else
+				sci_module_log(LL_WARN, "%s: got invalid entry without a message node", __func__);
+			nx_json_free(json);
+		}
 	}
 
 	if(filledMeta)
