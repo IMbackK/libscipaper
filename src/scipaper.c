@@ -121,7 +121,9 @@ bool sci_save_document_to_file(const DocumentMeta* meta, const char* fileName)
 	PdfData* data = sci_get_document_pdf_data(meta);
 	if(!data)
 		return false;
-	return sci_save_pdf_to_file(data, fileName);
+	bool ret = sci_save_pdf_to_file(data, fileName);
+	pdf_data_free(data);
+	return ret;
 }
 
 const VersionFixed* sci_get_version(void)

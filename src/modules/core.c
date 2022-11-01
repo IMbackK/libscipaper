@@ -284,6 +284,13 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 			g_free(priv->scrollId);
 			priv->scrollId = g_strdup(nx_json_get(json, "scrollId")->text_value);
 		}
+		else
+		{
+			document_meta_free(priv->lastDocument);
+			priv->lastDocument = NULL;
+			g_free(priv->scrollId);
+			priv->scrollId = NULL;
+		}
 
 		nx_json_free(json);
 		g_string_free(jsonText, true);
