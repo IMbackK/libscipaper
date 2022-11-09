@@ -48,6 +48,7 @@ GString* buildQuery(const GSList* list)
 		g_string_append_c(string, '=');
 		char* escapedValue = g_uri_escape_string(pair->value, ",", false);
 		g_string_append(string, escapedValue);
+		g_free(escapedValue);
 		if(element->next)
 			g_string_append_c(string, '&');
 	}
