@@ -145,7 +145,7 @@ void sci_plugin_unregister(int id)
 	}
 }
 
-static bool isFilledAsRequested(const DocumentMeta* meta, const FillReqest* fill)
+static bool is_filled_as_requested(const DocumentMeta* meta, const FillReqest* fill)
 {
 	bool ret = true;
 
@@ -194,7 +194,7 @@ static void sci_compleat_fill_meta(DocumentMeta* meta, const FillReqest* fill)
 		sci_log(LL_DEBUG, "try filling with %s", sci_get_backend_name(backend->id));
 		DocumentMeta* soruceMeta = sci_find_by_doi(meta->doi, backend->id);
 		document_meta_combine(meta, soruceMeta);
-		if(isFilledAsRequested(meta, fill))
+		if(is_filled_as_requested(meta, fill))
 			break;
 	}
 }
@@ -219,7 +219,7 @@ RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 				for(size_t i = 0; i < newMetas->count; ++i)
 				{
 					document_meta_combine(newMetas->documents[i], meta);
-					if(meta->backendId == 0 && !isFilledAsRequested(newMetas->documents[i], fill))
+					if(meta->backendId == 0 && !is_filled_as_requested(newMetas->documents[i], fill))
 					{
 						sci_log(LL_DEBUG,
 							"%s: Document found by %s but uncompeat filling:", __func__, sci_get_backend_name(backend->id));
