@@ -21,3 +21,11 @@ target_include_directories(core PRIVATE ${MODULE_INCLUDE_DIRS})
 set_target_properties(core PROPERTIES COMPILE_FLAGS ${COMMON_FLAGS})
 install(TARGETS core DESTINATION ${SCI_MODULE_DIR})
 
+if(DEFINED LIBXML2_FOUND)
+	add_library(scihub SHARED scihub.c)
+	target_link_libraries(scihub ${COMMON_LIBRARIES} ${LIBXML2_LIBRARIES})
+	target_include_directories(scihub SYSTEM PRIVATE ${COMMON_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIRS})
+	target_include_directories(scihub PRIVATE ${MODULE_INCLUDE_DIRS})
+	set_target_properties(scihub PROPERTIES COMPILE_FLAGS ${COMMON_FLAGS})
+endif(DEFINED LIBXML2_FOUND)
+

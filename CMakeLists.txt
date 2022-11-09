@@ -12,6 +12,7 @@ add_definitions(-DSCI_SYSCONF_INI=scipaper.ini)
 find_package(Doxygen)
 
 find_package(PkgConfig REQUIRED)
+find_package(LibXml2)
 pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(GMODULE REQUIRED gmodule-2.0)
 pkg_check_modules(CURL REQUIRED libcurl)
