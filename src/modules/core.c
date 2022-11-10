@@ -162,6 +162,15 @@ static DocumentMeta* core_parse_document_meta(const nx_json* item, struct CorePr
 	return result;
 }
 
+static bool core_is_in_range(int page, int nextPage)
+{
+	if(page < nextPage)
+		return false;
+	if(page - nextPage < 3)
+		return true;
+	return false;
+}
+
 static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
 {
 	struct CorePriv* priv = userData;
@@ -175,7 +184,7 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 
 	bool fastPage = false;
 	if(page == 0 || (document_meta_is_equal(meta, priv->lastDocument) &&
-		priv->lastMaxCount == maxCount && priv->nextPage == page && priv->scrollId))
+		priv->lastMaxCount == maxCount && core_is_in_range(page, priv->nextPage) && priv->scrollId))
 	{
 		if(page != 0)
 			sci_module_log(LL_DEBUG, "Using fast pageing for this request");
