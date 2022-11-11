@@ -74,7 +74,7 @@ const char* sci_get_backend_name(int id)
 		return "Unkown/Any";
 	const BackendInfo* backend = sci_get_backend_info(id);
 	if(!backend)
-		return NULL;
+		return "Invalid";
 	return backend->name;
 }
 
@@ -231,7 +231,11 @@ RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 			}
 		}
 	}
-	sci_log(LL_WARN, "%s: Unable to fill meta", __func__);
+	if(meta->backendId == 0)
+		sci_log(LL_WARN, "%s: Unable to fill meta", __func__);
+	else
+		sci_log(LL_WARN, "%s: Unable to get meta from %s, maybe try without specifying a backend",
+				__func__, sci_get_backend_name(meta->backendId));
 	return NULL;
 }
 
@@ -247,7 +251,11 @@ char* sci_get_document_text(const DocumentMeta* meta)
 				return text;
 		}
 	}
-	sci_log(LL_WARN, "%s: Unable to get text", __func__);
+	if(meta->backendId == 0)
+		sci_log(LL_WARN, "%s: Unable to get text", __func__);
+	else
+		sci_log(LL_WARN, "%s: Unable to get text from %s, maybe try without specifying a backend",
+				__func__, sci_get_backend_name(meta->backendId));
 	return NULL;
 }
 
@@ -265,6 +273,10 @@ PdfData* sci_get_document_pdf_data(const DocumentMeta* meta)
 				return data;
 		}
 	}
-	sci_log(LL_WARN, "%s: Unable to get pdf data%s", __func__, backendAvail ? "" : " no backend available");
+	if(meta->backendId == 0)
+		sci_log(LL_WARN, "%s: Unable to get pdf data%s", __func__, backendAvail ? "" : " no backend available");
+	else
+		sci_log(LL_WARN, "%s: Unable to get pdf data from %s, maybe try without specifying a backend",
+				__func__, sci_get_backend_name(meta->backendId));
 	return NULL;
 }

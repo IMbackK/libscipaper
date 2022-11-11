@@ -145,7 +145,7 @@ int sci_backend_get_id_by_name(const char* name);
 /**
  * @brief gives you the name of the backend with id
  * @param id the id of the backend you want the name for
- * @return a const string with the name of the backend, has static lifetime and shal not be freed
+ * @return a const string with the name of the backend, or "Invalid" if not valid, has static lifetime and shal not be freed.
  */
 const char* sci_get_backend_name(int id);
 

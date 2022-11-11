@@ -118,6 +118,19 @@ static void fill_meta_by_doi(void)
 		char* documentString = document_meta_get_string(meta);
 		printf("Found document for 10.1002/ange.19410544309:\n%s", documentString);
 		free(documentString);
+		printf("Trying grab scihub\n");
+		meta->backendId = 0;
+		PdfData* pdfData = sci_get_document_pdf_data(meta);
+		if(pdfData)
+		{
+			puts("Found pdf for 10.1002/ange.19410544309");
+			sci_save_pdf_to_file(pdfData, "out.pdf");
+			pdf_data_free(pdfData);
+		}
+		else
+		{
+			puts("unable to grab pdf");
+		}
 	}
 	else
 	{
@@ -153,9 +166,9 @@ int main(int argc, char** argv)
 		free(cap);
 	}
 
-	search_wallauer();
+	//search_wallauer();
 	fill_meta_by_doi();
-	search_and_grab_wallauer_via_core();
+	//search_and_grab_wallauer_via_core();
 
 	sci_paper_exit();
 	return 0;

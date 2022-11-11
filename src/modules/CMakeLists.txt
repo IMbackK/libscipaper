@@ -27,5 +27,6 @@ if(DEFINED LIBXML2_FOUND)
 	target_include_directories(scihub SYSTEM PRIVATE ${COMMON_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIRS})
 	target_include_directories(scihub PRIVATE ${MODULE_INCLUDE_DIRS})
 	set_target_properties(scihub PROPERTIES COMPILE_FLAGS ${COMMON_FLAGS})
+	install(TARGETS scihub DESTINATION ${SCI_MODULE_DIR})
 endif(DEFINED LIBXML2_FOUND)
 
