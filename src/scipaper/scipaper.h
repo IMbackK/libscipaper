@@ -1,6 +1,6 @@
 /*
  * scipaper.h
- * Copyright (C) Carl Philipp Klemm 2021 <carl@uvos.xyz>
+ * Copyright (C) Carl Philipp Klemm 2022 <carl@uvos.xyz>
  *
  * scipaper.h is free software: you can redistribute it and/or modify it
  * under the terms of the lesser GNU General Public License as published by the

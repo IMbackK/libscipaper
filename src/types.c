@@ -22,6 +22,7 @@
 #include <assert.h>
 #include "sci-log.h"
 #include "utils.h"
+#include "nxjson.h"
 
 char* capability_flags_get_str(capability_flags_t capabilities)
 {
@@ -243,6 +244,140 @@ char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, siz
 
 	*length = string->len;
 	return string->str;
+}
+
+DocumentMeta* document_meta_load_from_json(char* jsonFile)
+{
+	const nx_json* json = nx_json_parse_utf8(jsonFile);
+	if(!json)
+	{
+		sci_log(LL_ERR, "%s: Could not load json entry in given file", __func__);
+		return NULL;
+	}
+
+	DocumentMeta* meta = document_meta_new();
+
+	meta->doi = g_strdup(nx_json_get(json, "doi")->text_value);
+	meta->url = g_strdup(nx_json_get(json, "url")->text_value);
+	meta->year = nx_json_get(json, "year")->int_value;
+	meta->publisher = g_strdup(nx_json_get(json, "publisher")->text_value);
+	meta->volume = g_strdup(nx_json_get(json, "volume")->text_value);
+	meta->pages = g_strdup(nx_json_get(json, "pages")->text_value);
+	meta->author = g_strdup(nx_json_get(json, "author")->text_value);
+	meta->title = g_strdup(nx_json_get(json, "title")->text_value);
+	meta->journal = g_strdup(nx_json_get(json, "journal")->text_value);
+	meta->issn = g_strdup(nx_json_get(json, "issn")->text_value);
+	meta->keywords = g_strdup(nx_json_get(json, "keywords")->text_value);
+	meta->downloadUrl = g_strdup(nx_json_get(json, "download-url")->text_value);
+	meta->abstract = g_strdup(nx_json_get(json, "abstract")->text_value);
+
+	nx_json_free(json);
+
+	return meta;
+}
+
+
+DocumentMeta* document_meta_load_from_json_file(char* jsonFileName)
+{
+	char* text;
+	GError *error = NULL;
+
+	bool ret = g_file_get_contents(jsonFileName, &text, NULL, &error);
+	if(!ret)
+	{
+		sci_log(LL_ERR, "%s: %s", __func__, error->message);
+		g_error_free(error);
+		return NULL;
+	}
+
+	DocumentMeta* meta = document_meta_load_from_json(text);
+	g_free(text);
+	return meta;
+}
+
+char* document_meta_load_full_text_from_json_file(char* jsonFileName)
+{
+	char* jsonFile;
+	GError *error = NULL;
+
+	bool ret = g_file_get_contents(jsonFileName, &jsonFile, NULL, &error);
+	if(!ret)
+	{
+		sci_log(LL_ERR, "%s: %s", __func__, error->message);
+		g_error_free(error);
+		return NULL;
+	}
+	const nx_json* json = nx_json_parse_utf8(jsonFile);
+	if(!json)
+	{
+		sci_log(LL_ERR, "%s: Could not load json entry in given file", __func__);
+		return NULL;
+	}
+	return g_strdup(nx_json_get(json, "full-text")->text_value);
+}
+
+char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const char* type)
+{
+	if(!type)
+		type = "Article";
+
+	if(!meta->author)
+	{
+		sci_log(LL_DEBUG, "%s: the document meta must contain at least an author field", __func__);
+		return NULL;
+	}
+	GString* string = g_string_new("@");
+	g_string_append(string, type);
+	g_string_append(string, "{");
+
+	char** authorTokens = g_str_tokenize_and_fold(meta->author, NULL, NULL);
+	GString* authorString = g_string_new(NULL);
+	for(int i = 0; authorTokens[i]; ++i)
+	{
+		if(i == 0)
+			g_string_append(authorString, authorTokens[i]);
+		else
+			g_string_append_c(authorString, authorTokens[i][0]);
+
+		g_free(authorTokens[i]);
+	}
+	g_free(authorTokens);
+	g_string_ascii_up(authorString);
+	if(meta->year)
+		g_string_append_printf(authorString, "%lu", meta->year);
+	else
+		g_string_append_printf(authorString, "%u", (unsigned int)(g_random_int_range(0, (1 << 16))));
+	g_string_append(string, authorString->str);
+	g_string_append(string, ",\n");
+	g_string_free(authorString, true);
+
+	g_string_append_printf(string, "\tauthor={%s},\n", meta->author);
+	if(meta->title)
+		g_string_append_printf(string, "\ttitle={%s},\n", meta->title);
+	if(meta->doi)
+		g_string_append_printf(string, "\tdoi={%s},\n", meta->doi);
+	if(meta->url)
+		g_string_append_printf(string, "\turl={%s},\n", meta->url);
+	if(meta->year)
+		g_string_append_printf(string, "\tyear={%lu},\n", meta->year);
+	if(meta->publisher)
+		g_string_append_printf(string, "\tpublisher={%s},\n", meta->publisher);
+	if(meta->volume)
+		g_string_append_printf(string, "\tvolume={%s},\n", meta->volume);
+	if(meta->pages)
+		g_string_append_printf(string, "\tpages={%s},\n", meta->pages);
+	if(meta->issn)
+		g_string_append_printf(string, "\tissn={%s},\n", meta->issn);
+	if(meta->keywords)
+		g_string_append_printf(string, "\tkeywords={%s},\n", meta->keywords);
+	if(meta->journal)
+		g_string_append_printf(string, "\tjournal={%s},\n", meta->journal);
+	g_string_append_c(string, '}');
+
+	*length = string->len;
+	char* str = string->str;
+	g_string_free(string, false);
+	return str;
 }
 
 bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText)

@@ -1,6 +1,6 @@
 /*
  * types.h
- * Copyright (C) Carl Philipp Klemm 2021 <carl@uvos.xyz>
+ * Copyright (C) Carl Philipp Klemm 2022 <carl@uvos.xyz>
  *
  * types.h is free software: you can redistribute it and/or modify it
  * under the terms of the lesser GNU General Public License as published by the
@@ -171,6 +171,36 @@ char* document_meta_get_string(const DocumentMeta* meta);
  * @return A newly allocated string containing the json data
  */
 char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length);
+
+/**
+ * @brief create a DocumentMeta from json data saved by document_meta_get_json()
+ * @param jsonFile a c string containing the json data
+ * @return A newly allocated DocumentMeta containing metadata contained in the file, or NULL if invalid
+ */
+DocumentMeta* document_meta_load_from_json(char* jsonFile);
+
+/**
+ * @brief create a DocumentMeta from json file saved by document_meta_save()
+ * @param jsonFileName a filename of a json file to load
+ * @return A newly allocated DocumentMeta containing metadata contained in the file, or NULL if invalid
+ */
+DocumentMeta* document_meta_load_from_json_file(char* jsonFileName);
+
+/**
+ * @brief create a DocumentMeta from json file saved by document_meta_save()
+ * @param jsonFileName a filename of a json file to load
+ * @return A newly allocated string with the text in the given file, or NULL if invalid
+ */
+char* document_meta_load_full_text_from_json_file(char* jsonFileName);
+
+/**
+ * @brief Get string containing biblatex entry of the supplied DoucmentMeta
+ * @param meta The DocumentMeta struct to save into the string
+ * @param length length of the returned string containing the biblatex data
+ * @param type string with type of biblatex entry or NULL for default/dont care
+ * @return A newly allocated string containing the biblatex entry
+ */
+char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const char* type);
 
 /**
  * @brief Saves a DocumentMeta to disk
