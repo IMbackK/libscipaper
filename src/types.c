@@ -277,7 +277,7 @@ DocumentMeta* document_meta_load_from_json(char* jsonFile)
 }
 
 
-DocumentMeta* document_meta_load_from_json_file(char* jsonFileName)
+DocumentMeta* document_meta_load_from_json_file(const char* jsonFileName)
 {
 	char* text;
 	GError *error = NULL;
@@ -295,7 +295,7 @@ DocumentMeta* document_meta_load_from_json_file(char* jsonFileName)
 	return meta;
 }
 
-char* document_meta_load_full_text_from_json_file(char* jsonFileName)
+char* document_meta_load_full_text_from_json_file(const char* jsonFileName)
 {
 	char* jsonFile;
 	GError *error = NULL;

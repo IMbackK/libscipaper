@@ -184,14 +184,14 @@ DocumentMeta* document_meta_load_from_json(char* jsonFile);
  * @param jsonFileName a filename of a json file to load
  * @return A newly allocated DocumentMeta containing metadata contained in the file, or NULL if invalid
  */
-DocumentMeta* document_meta_load_from_json_file(char* jsonFileName);
+DocumentMeta* document_meta_load_from_json_file(const char* jsonFileName);
 
 /**
  * @brief create a DocumentMeta from json file saved by document_meta_save()
  * @param jsonFileName a filename of a json file to load
  * @return A newly allocated string with the text in the given file, or NULL if invalid
  */
-char* document_meta_load_full_text_from_json_file(char* jsonFileName);
+char* document_meta_load_full_text_from_json_file(const char* jsonFileName);
 
 /**
  * @brief Get string containing biblatex entry of the supplied DoucmentMeta
