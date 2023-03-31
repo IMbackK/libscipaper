@@ -235,6 +235,12 @@ static RequestReturn* core_fill_meta_impl(int *code, const DocumentMeta* meta, s
 		}
 		g_free(tokens);
 	}
+	if(meta->abstract)
+	{
+		g_string_append(searchString, "abstract:\"");
+		g_string_append(searchString, meta->abstract);
+		g_string_append(searchString, "\"+");
+	}
 	if(meta->searchText)
 	{
 		g_string_append_c(searchString, '\"');
@@ -315,7 +321,7 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		return NULL;
 	}
 
-	if(meta->author || meta->title || meta->keywords || meta->searchText)
+	if(meta->author || meta->title || meta->keywords || meta->searchText || meta->abstract)
 	{
 		int code = -1;
 		for(int i = 0; i < priv->retry && code != 0; ++i)
@@ -324,6 +330,10 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 				sci_module_log(LL_WARN, "Could not get results from core, retrying %i of %i", i+1, priv->retry);
 			results = core_fill_meta_impl(&code, meta, maxCount, page, priv);
 		}
+	}
+	else
+	{
+		sci_module_log(LL_DEBUG, "Can not fill meta that dose not contain author, title, keywords, abstract or searchText");
 	}
 
 	return results;

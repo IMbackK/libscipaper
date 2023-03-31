@@ -16,7 +16,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${COMMON_FLAGS})
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
-set(SRC_FILES_TEST_APP main.c)
+set(SRC_FILES_TEST_APP main.cpp log.cpp)
 set(LIBS_CLI -L. -l${PROJECT_NAME})
 add_executable(${PROJECT_NAME}_cli ${SRC_FILES_TEST_APP})
 add_dependencies(${PROJECT_NAME}_cli ${PROJECT_NAME})

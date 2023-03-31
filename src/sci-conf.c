@@ -324,9 +324,13 @@ static bool sci_conf_is_ini_file(const char *filename)
 bool sci_conf_init(const char* fileName, const char* data, size_t length)
 {
 	sci_conf_file_count = 1;
+	char* home = getenv("HOME");
+
 	if(fileName)
 		++sci_conf_file_count;
 	if(data)
+		++sci_conf_file_count;
+	if(home)
 		++sci_conf_file_count;
 	size_t index = 0;
 
@@ -347,6 +351,24 @@ bool sci_conf_init(const char* fileName, const char* data, size_t length)
 	{
 		conf_files[index].keyfile = main_conf_file;
 		++index;
+	}
+
+	if(home)
+	{
+		conf_files[index].filename = g_strdup(G_STRINGIFY(SCI_SYSCONF_INI));
+		conf_files[index].path = g_strconcat(home, "/", G_STRINGIFY(SCI_USERCONF_DIR), "/", G_STRINGIFY(SCI_SYSCONF_INI), NULL);
+		gpointer conf_file = sci_conf_read_conf_file(conf_files[index].path);
+		if(!conf_file)
+		{
+			g_free(conf_files[index].filename);
+			g_free(conf_files[index].path);
+			--sci_conf_file_count;
+		}
+		else
+		{
+			conf_files[index].keyfile = conf_file;
+			++index;
+		}
 	}
 
 	if(fileName)
@@ -395,7 +417,7 @@ bool sci_conf_init(const char* fileName, const char* data, size_t length)
 		return FALSE;
 	
 	for (size_t i = 0; i < sci_conf_file_count; ++i)
-		sci_log(LL_DEBUG, "sci-conf: using conf file %lu: %s", (unsigned long)i, conf_files[i].filename);
+		sci_log(LL_DEBUG, "sci-conf: using conf file %lu: %s", (unsigned long)i, conf_files[i].path);
 
 	return TRUE;
 }

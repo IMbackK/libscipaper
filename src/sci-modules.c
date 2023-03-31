@@ -69,7 +69,7 @@ static void sci_modules_load(gchar **modlist)
 	{
 		struct sci_module *module = g_malloc(sizeof(*module));
 		module->name = g_strdup(modlist[i]);
-		gchar *tmp = g_module_build_path(path, modlist[i]);
+		gchar *tmp = g_strconcat(path, "/", modlist[i], NULL);//g_module_build_path(path, modlist[i]);
 
 		sci_log(LL_DEBUG, "Loading module: %s from %s", modlist[i], path);
 

@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(scipaper LANGUAGES C)
+project(scipaper LANGUAGES C CXX)
 set(SCI_SYSCONF_DIR /usr/share/scipaper)
 set(SCI_MODULE_DIR /usr/lib/scipaper/modules)
+set(SCI_USERCONF_DIR .config/scipaper)
 
 add_definitions(-D_GNU_SOURCE)
 add_definitions(-DSCI_MODULE_DIR=${SCI_MODULE_DIR})
 add_definitions(-DSCI_SYSCONF_DIR=${SCI_SYSCONF_DIR})
+add_definitions(-DSCI_USERCONF_DIR=${SCI_USERCONF_DIR})
 add_definitions(-DSCI_SYSCONF_INI=scipaper.ini)
 
 find_package(Doxygen)
@@ -17,6 +19,9 @@ pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(GMODULE REQUIRED gmodule-2.0)
 pkg_check_modules(CURL REQUIRED libcurl)
 
+set(CXX_STANDARD 11)
+set(C_STANDARD 99)
+
 set(COMMON_INCLUDE_DIRS
   ${GLIB_INCLUDE_DIRS}
   ${GMODULE_INCLUDE_DIRS}
@@ -26,7 +31,7 @@ set(COMMON_INCLUDE_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/src/modapi)
 message(${COMMON_INCLUDE_DIRS})
 set(COMMON_LIBRARIES ${GLIB_LIBRARIES} ${GMODULE_LIBRARIES} ${CURL_LIBRARIES})
-set(COMMON_FLAGS "-std=c99 -Wall -O2 -march=native -g -fno-strict-aliasing")
+set(COMMON_FLAGS "-Wall -O2 -march=native -g -fno-strict-aliasing")
 
 set(CMAKE_INSTALL_PREFIX "/usr")
 

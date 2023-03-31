@@ -213,6 +213,7 @@ RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 		struct SciBackend* backend = element->data;
 		if(backend->fill_meta && (meta->backendId == backend->id || meta->backendId == 0))
 		{
+			sci_log(LL_DEBUG, "%s: Trying to fill using %s", __func__, backend->backend_info->name);
 			RequestReturn* newMetas = backend->fill_meta(meta, maxCount, page, backend->user_data);
 			if(newMetas)
 			{
