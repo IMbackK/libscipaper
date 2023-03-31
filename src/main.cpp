@@ -29,7 +29,7 @@ static constexpr size_t resultsPerPage = 200;
 
 bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveText, const std::filesystem::path& outDir, size_t maxCount)
 {
-	Log(Log::INFO)<<"Downloading results";
+	Log(Log::INFO)<<"Trying to download "<<maxCount<<" results";
 	RequestReturn* req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), 0);
 	bool retried = false;
 	if(req)
@@ -49,7 +49,7 @@ bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveTe
 		for(size_t page = 0; page <= pages; ++page)
 		{
 			if(page != 0)
-				req = sci_fill_meta(meta, nullptr, resultsPerPage, page);
+				req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), page);
 			if(!req)
 			{
 				if(!retried)
@@ -62,17 +62,17 @@ bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveTe
 				retried = false;
 			}
 
-			Log(Log::INFO)<<"Processing page "<<page<<": "<<processed<<" of "<<std::min(maxCount, req->totalCount)<<
+			Log(Log::INFO)<<"Processing page "<<page<<": "<<processed<<" of "<<req->totalCount<<
 				", got "<<req->count<<" results this page";
 			for(size_t i = 0; i < req->count; ++i)
 			{
 				if(req->documents[i])
 				{
-					std::filesystem::path jsonpath = outDir/(std::to_string(page*resultsPerPage+i) + ".json");
+					std::filesystem::path jsonpath = outDir/(std::to_string(processed) + ".json");
 
 					if(savePdf)
 					{
-						std::filesystem::path pdfpath = outDir/(std::to_string(page*resultsPerPage+i) + ".pdf");
+						std::filesystem::path pdfpath = outDir/(std::to_string(processed) + ".pdf");
 						bool ret = sci_save_document_to_file(req->documents[i], pdfpath.c_str());
 						if(!ret)
 							Log(Log::WARN)<<"Could not get pdf for document "<<jsonpath;
@@ -86,9 +86,14 @@ bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveTe
 							Log(Log::WARN)<<"Could not get text for document "<<jsonpath;
 					}
 
+					Log(Log::DEBUG)<<"saveing meta for "<<jsonpath.c_str();
 					bool ret = document_meta_save(jsonpath.c_str(), req->documents[i], text);
 					if(!ret)
 						Log(Log::WARN)<<"Could not save document metadata"<<jsonpath;
+				}
+				else
+				{
+					Log(Log::WARN)<<"Document meta for result "<<i<<" of page "<<page<<" is empty";
 				}
 				++processed;
 				if(maxCount > 0 && processed >= maxCount)
@@ -137,6 +142,17 @@ int main(int argc, char** argv)
 	if(!ret)
 		return 1;
 
+	int backendId = 0;
+	if(!config.backend.empty())
+	{
+		backendId = sci_backend_get_id_by_name(config.backend.c_str());
+		if(backendId == 0)
+		{
+			Log(Log::ERROR)<<"libscipaper reports that the backend "<<config.backend<<" is not available";
+			return 1;
+		}
+	}
+
 	DocumentMeta queryMeta = {
 		.doi = const_cast<char*>(config.doi.empty() ? nullptr : config.doi.c_str()),
 		.title = const_cast<char*>(config.title.empty() ? nullptr : config.title.c_str()),
@@ -144,7 +160,8 @@ int main(int argc, char** argv)
 		.keywords = const_cast<char*>(config.keywords.empty() ? nullptr : config.keywords.c_str()),
 		.abstract = const_cast<char*>(config.abstract.empty() ? nullptr : config.abstract.c_str()),
 		.searchText = const_cast<char*>(config.text.empty() ? nullptr : config.text.c_str()),
-		.hasFullText = true
+		.hasFullText = config.fullText || config.savePdf,
+		.backendId = backendId
 	};
 
 	size_t length;

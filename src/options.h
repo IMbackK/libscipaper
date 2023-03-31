@@ -45,7 +45,7 @@ static struct argp_option options[] =
   {"limit",				'l', "[NUMBER]",	0,	"Maximum number of results to process" },
   {"pdf",				'p', 0,			0,		"Save pdf"},
   {"full-text",			'f', 0,			0,		"Save full text"},
-  {"backend",			'b', 0,			0,		"Ask scipaper to use a specific backend"},
+  {"backend",			'b', "[STRING]",			0,		"Ask scipaper to use a specific backend"},
   { 0 }
 };
 
