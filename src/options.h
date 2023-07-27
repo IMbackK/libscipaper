@@ -43,9 +43,9 @@ static struct argp_option options[] =
   {"dry-run",			'd', 0,			0,	"Just show how manny results there are"},
   {"out-dir",			'o', "[DIRECTORY]",	0,	"Place to save output" },
   {"limit",				'l', "[NUMBER]",	0,	"Maximum number of results to process" },
-  {"pdf",				'p', 0,			0,		"Save pdf"},
-  {"full-text",			'f', 0,			0,		"Save full text"},
-  {"backend",			'b', "[STRING]",			0,		"Ask scipaper to use a specific backend"},
+  {"pdf",				'p', 0,				0,		"Save pdf"},
+  {"full-text",			'f', 0,				0,		"Save full text"},
+  {"backend",			'b', "[STRING]",	0,		"Ask scipaper to use a specific backend"},
   { 0 }
 };
 
