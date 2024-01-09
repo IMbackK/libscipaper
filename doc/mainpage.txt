@@ -1,10 +1,10 @@
 /*! \mainpage libscipaper manual
 
 libscipaper is a shared library that allows you to get metadata to scientific papers from various database services.
-When queried libscipaper will ask eatch of its backends to the database services to try and fill in information about the requested paper in order of the priority given in scipaper.ini or in the order requested by the user of the \ref API
-libscipaper also allows you to get full text as well as pdf files for scientific papers where they are availble.
+When queried libscipaper will ask each of its backends to the database services to try and fill in information about the requested paper in order of the priority given in scipaper.ini or in the order requested by the user of the \ref API
+libscipaper also allows you to get full text as well as PDF files for scientific papers where they are available.
 
-libscipaper is a modular library with eatch database backend provided by a plugin.
+libscipaper is a modular library with each database backend provided by a plugin.
 currently libscipaper has two finished backend plugins:
 - A core.ac.uk plugin
 - A crossref plugin
@@ -19,7 +19,7 @@ This manual is divided in the following sections depending on if you want to use
 //-----------------------------------------------------------
 
 /*! \page userAPI User API
-This API porvides the external functionality required to use libscipaper in your application to get document metadata as well as full text.
+This API provides the external functionality required to use libscipaper in your application to get document metadata as well as full text.
 
 The gist of the API to query a paper or multiple papers is:
 
@@ -27,15 +27,15 @@ The gist of the API to query a paper or multiple papers is:
 	- provide your edited .ini file to libscipaper via the parameters to sci_paper_init()
 2. Create a DocumentMeta struct with document_meta_new()
 	- fill any combination of fields you would like to search for like for instance .author = "Klemm" and .abstract = "String theory".
-	- all filled fields will be AND'ed in your seatch
+	- all filled fields will be AND'ed in your search
 3. Optionally, if you require that the results libscipaper returns must contain specific metadata fields you can also add a FillReqest and set the appropriate bits for the fields you require
-	- This will cause libscipaper to not return with the result from first backend that manages to fill your search query, instead libscipaper will continue aggregating the results from all backends untill all your requested fields are found or libscipaper runs out of backends.
+	- This will cause libscipaper to not return with the result from first backend that manages to fill your search query, instead libscipaper will continue aggregating the results from all backends until all your requested fields are found or libscipaper runs out of backends.
 4. Query libscipaper for documents matching your DocumentMeta struct with sci_fill_meta() getting a RequestReturn struct in return
 5. Loop over the DocumentMeta structs in the RequestReturn and select some papers that interest you
 6. You can grab the full text of the papers in question by calling sci_get_document_text(), sci_get_document_pdf_data() or sci_save_pdf_to_file()
 7. You can save your results to disk via document_meta_save()
 
-Usually the default beahvior of scipaper returning the result from the first backend that matches your query is what you want, but if this is not what you want, you can specify a backend for libscipaper to use by setting the backendId varaible in your DocumentMeta query struct to the id of a backend found with sci_get_all_backends() or sci_backend_get_id_by_name()
+Usually the default behavior of scipaper returning the result from the first backend that matches your query is what you want, but if this is not what you want, you can specify a backend for libscipaper to use by setting the backendId variable in your DocumentMeta query struct to the id of a backend found with sci_get_all_backends() or sci_backend_get_id_by_name()
 
 Full API documentation can be found here: \ref API
 
@@ -96,7 +96,7 @@ _______
 //-----------------------------------------------------------
 
 /*! \page pluginAPI Plugin API
-	This API porvides the ability to write a pulgin that implements a backend to any database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases. Full documentation can be found here: \ref MODAPI. For the convenience of module developers, a Jason parsing API is allso provided. This API is documented here:  \ref JSONAPI.
+	This API provides the ability to write a plugin that implements a backend to any database of papers. The hope being that libscipaper with eventually have modules that implement fetching from all major scientific databases. Full documentation can be found here: \ref MODAPI. For the convenience of module developers, a Jason parsing API is also provided. This API is documented here:  \ref JSONAPI.
 
 	A libscipaper module is a C or C++ tanslation unit that contains `#define MODULE_NAME "some-name"` as well as exporting the symbols sci_module_init of type \ref sci_module_init_fn and sci_module_exit of type \ref sci_module_exit_fn.
 
@@ -149,7 +149,7 @@ static char* test_get_document_text(const DocumentMeta* meta, void* userData)
 static PdfData* test_get_document_pdf_data(const DocumentMeta* meta, void* userData)
 {
 	struct TestPriv* priv = userData;
-	//Check out the the contense of meta here and search for the contained fields in your database, return raw pdf binary data for the first search result.
+	//Check out the the contense of meta here and search for the contained fields in your database, return raw PDF binary data for the first search result.
 	return NULL;
 }
 
@@ -157,7 +157,7 @@ static PdfData* test_get_document_pdf_data(const DocumentMeta* meta, void* userD
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);
 const gchar *sci_module_init(void** data)
 {
-	//Do whatever is nessecary to initalise your database.
+	//Do whatever is necessarily to initialize your database.
 	struct TestPriv* priv = g_malloc0(sizeof(*priv));
 	*data = priv;
 	priv->id = sci_plugin_register(&module_info, test_fill_meta, test_get_document_text, test_get_document_pdf_data, priv);
@@ -168,7 +168,7 @@ G_MODULE_EXPORT void sci_module_exit(void* data);
 void sci_module_exit(void* data)
 {
 	struct TestPriv* priv = data;
-	//Free any resources you have aquired.
+	//Free any resources you have acquired.
 	g_free(priv);
 }
 @endcode

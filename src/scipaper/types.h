@@ -45,7 +45,7 @@ typedef enum {
 } loglevel_t;
 
 /**
- * @brief Flags that descibe what a backend can do
+ * @brief Flags that describe what a backend can do
  */
 typedef enum {
 	SCI_CAP_FILL = 1,			/**< Backend can fill DocumentMeta structs*/
@@ -54,7 +54,7 @@ typedef enum {
 } capability_flags_t;
 
 /**
- * @brief returns the capabilities flags as a human readble string.
+ * @brief returns the capabilities flags as a human readable string.
  * @param capabilities Print with INFO priority if true and DEBUG priority if false
  * @return A newly allocated string stating the flags
  */
@@ -74,26 +74,26 @@ typedef struct _VersionFixed {
  */
 typedef struct _BackendInfo {
 	const char *const name; /**< Name of the plugin */
-	capability_flags_t capabilities; /**< Flags that descibe what a backend can do */
+	capability_flags_t capabilities; /**< Flags that describe what a backend can do */
 } BackendInfo;
 
 /**
  * @brief This bitfield tells libscipaper what fields you require to have filled.
- * libscipaper will try eatch of its backends in sequence untill
+ * libscipaper will try each of its backends in sequence until
  */
 typedef struct _FillReqest {
-	bool doi:1; /**< The doi of the paper */
-	bool url:1; /**< The url of the paper in the journal */
+	bool doi:1; /**< The DOI of the paper */
+	bool url:1; /**< The URL of the paper in the journal */
 	bool year:1; /**< Publication year of the paper */
 	bool publisher:1; /**< Publisher of the paper */
-	bool volume:1; /**< Jornal volume where the paper apeard */
+	bool volume:1; /**< Journal volume where the paper appeared */
 	bool pages:1; /**< Page(s) where the paper is to be found in the volume */
 	bool author:1; /**< The author(s) of the paper */
 	bool title:1; /**< The title of the paper */
 	bool journal:1; /**< The journal in which the paper was published */
 	bool issn:1; /**< The journal issn in which the paper was published */
 	bool keywords:1; /**< Keywords given by the author of the paper for the paper */
-	bool downloadUrl:1; /**< Url where the full text of the document can be found */
+	bool downloadUrl:1; /**< URL where the full text of the document can be found */
 	bool abstract:1; /**< abstract of the document */
 } FillReqest;
 
@@ -102,24 +102,24 @@ typedef struct _FillReqest {
  */
 typedef struct _DocumentMeta {
 	//To be filled by user for query or by backend as a result
-	char* doi; /**< The doi of the paper */
-	char* url; /**< The url of the paper in the journal */
+	char* doi; /**< The DOI of the paper */
+	char* url; /**< The URL of the paper in the journal */
 	unsigned long year; /**< Publication year of the paper */
 	char* publisher; /**< Publisher of the paper */
-	char* volume; /**< Jornal volume where the paper apeard */
+	char* volume; /**< Journal volume where the paper appeared */
 	char* pages; /**< Page(s) where the paper is to be found in the volume */
 	char* author; /**< The author(s) of the paper */
 	char* title; /**< The title of the paper */
 	char* journal; /**< The journal in which the paper was published */
 	char* issn; /**< The journal issn in which the paper was published */
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
-	char* downloadUrl; /**< Url where the full text of the document can be found */
+	char* downloadUrl; /**< URL where the full text of the document can be found */
 	char* abstract; /**< abstract of the document */
 
 	char* searchText; /**< freeform text to search for in backends */
-	bool hasFullText; /**< a hint that docuement has full text avialable */
+	bool hasFullText; /**< a hint that document has full text available */
 
-	int backendId; /**< The id of the backend that found the document, or the id that shal be tried to find the document */
+	int backendId; /**< The id of the backend that found the document, or the id that shall be tried to find the document */
 
 	//To be filled by backend
 	void* backendData; /**< Backend specific data, not to be used by clients*/
@@ -127,11 +127,11 @@ typedef struct _DocumentMeta {
 	void* (*backend_data_copy_fn)(void*); /**< Function to deep copy backend specific data, not to be used by clients*/
 
 	//Filled by libscipaper core
-	bool compleatedLookup; /**< Entry lookup compleated */
+	bool compleatedLookup; /**< Entry lookup completed */
 } DocumentMeta;
 
 /**
- * @brief Mallocs a DocumentMeta struct and initalizes it
+ * @brief Mallocs a DocumentMeta struct and initializes it
  * @return A newly allocated DocumentMeta struct
  */
 DocumentMeta* document_meta_new(void);
@@ -157,16 +157,16 @@ void document_meta_free(DocumentMeta* meta);
 void document_meta_combine(DocumentMeta* target, const DocumentMeta* source);
 
 /**
- * @brief Creates a human readble string describeing a DocumentMeta
+ * @brief Creates a human readable string describing a DocumentMeta
  * @param meta The DocumentMeta struct to print
- * @return a newly allocated string containing the describtion
+ * @return a newly allocated string containing the description
  */
 char* document_meta_get_string(const DocumentMeta* meta);
 
 /**
  * @brief Get string containing json data of the supplied DoucmentMeta
  * @param meta The DocumentMeta struct to save into the string
- * @param fullText Optionaly the full text associated with the DocumentMeta
+ * @param fullText Optionally the full text associated with the DocumentMeta
  * @param length length of the returned string containing the json data
  * @return A newly allocated string containing the json data
  */
@@ -204,10 +204,10 @@ char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const
 
 /**
  * @brief Saves a DocumentMeta to disk
- * @param fileName The file name unter which to save the DocumentMeta
+ * @param fileName The file name under which to save the DocumentMeta
  * @param meta The DocumentMeta struct to save to disk
- * @param fullText Optionaly the full text associated with the DocumentMeta
- * @return true on sucess false on failure
+ * @param fullText Optionally the full text associated with the DocumentMeta
+ * @return true on success false on failure
  */
 bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText);
 
@@ -218,17 +218,17 @@ bool document_meta_save(const char* fileName, const DocumentMeta* meta, const ch
 void document_meta_free_list(DocumentMeta** meta, size_t length);
 
 /**
- * @brief Compears to document metas and returns if they are equal.
- * This function dosent tell you if a and b refer to the same document, it only tells you if the DocumentMetas are bitwise the same
+ * @brief Compares to document metas and returns if they are equal.
+ * This function doesn't tell you if a and b refer to the same document, it only tells you if the DocumentMetas are bitwise the same
  * @param a A DocumentMeta struct
- * @param b Another DocumentMeta struct to compear to a
+ * @param b Another DocumentMeta struct to compare to a
  * @return true if a and b are equal, false otherwise
  */
 bool document_meta_is_equal(const DocumentMeta* a, const DocumentMeta* b);
 
 /**
  * @brief This struct is details the result of a metadata search.
- * it contains a series of DocumentMeta structs as well as infromation about the query.
+ * it contains a series of DocumentMeta structs as well as information about the query.
  * This struct must be freed with request_return_free()
  */
 typedef struct _RequestReturn {
@@ -236,12 +236,12 @@ typedef struct _RequestReturn {
 	size_t count; /**< The length of the DocumentMeta array */
 	size_t maxCount; /**< The maximum number of search results to be presented, as requested by the interface user */
 	size_t page; /**< The page that was requested */
-	size_t totalCount; /**< The total nummber of search results found by the backend, 0 if this information is not supported by the backend*/
+	size_t totalCount; /**< The total number of search results found by the backend, 0 if this information is not supported by the backend*/
 } RequestReturn;
 
 /**
  * @brief Allocates a empty RequestReturn struct
- * @param count nummber of DocumentMeta structs this struct contains
+ * @param count number of DocumentMeta structs this struct contains
  * @param maxCount maximum number of DocumentMeta structs requested by interface user
  * @return a newly allocated RequestReturn struct, to be freed with request_return_free()
  */
@@ -254,13 +254,13 @@ RequestReturn* request_return_new(size_t count, size_t maxCount);
 void request_return_free(RequestReturn* reqRet);
 
 /**
- * @brief This struct contains the raw data of a pdf document
+ * @brief This struct contains the raw data of a PDF document
  */
 typedef struct _PdfData
 {
 	unsigned char* data; /**< Raw data */
 	size_t length; /**< Length of data */
-	DocumentMeta* meta; /**< Meta data of the document that the pdf belongs to */
+	DocumentMeta* meta; /**< Meta data of the document that the PDF belongs to */
 } PdfData;
 
 /**
