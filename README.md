@@ -7,4 +7,4 @@ libscipaper also allows you to get full text as well as pdf files for scientific
 
 For questions or comments, as well as help with the usage of the plugin API contact devnull@uvos.xyz
 
-Full API documentation is avialable at [here](http://uvos.xyz/kiss/libscipaperdoc)
+Full documentation is avialable at [here](http://uvos.xyz/kiss/libscipaperdoc)

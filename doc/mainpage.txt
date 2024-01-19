@@ -8,12 +8,18 @@ libscipaper is a modular library with each database backend provided by a plugin
 currently libscipaper has two finished backend plugins:
 - A core.ac.uk plugin
 - A crossref plugin
+- A scihub plugin
 
 For questions or comments, as well as help with the usage of the plugin API contact carl@uvos.xyz
+
+
 
 This manual is divided in the following sections depending on if you want to use libscipaper in your application or write a plugin for it:
 - \subpage userAPI
 - \subpage pluginAPI
+
+For build instructions see \ref BUILD.
+
 */
 
 //-----------------------------------------------------------
