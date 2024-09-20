@@ -174,7 +174,8 @@ void document_meta_combine(DocumentMeta* target, const DocumentMeta* source)
 
 char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length)
 {
-	*length = 0;
+	if(length)
+		*length = 0;
 	if(!meta)
 		return NULL;
 
@@ -242,7 +243,8 @@ char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, siz
 
 	g_string_append(string, "}\n");
 
-	*length = string->len;
+	if(length)
+		*length = string->len;
 	return string->str;
 }
 
@@ -319,7 +321,10 @@ char* document_meta_load_full_text_from_json_file(const char* jsonFileName)
 char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const char* type)
 {
 	if(!type)
-		type = "Article";
+		type = "article";
+
+	if(length)
+		*length = 0;
 
 	if(!meta->author)
 	{
@@ -373,8 +378,10 @@ char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const
 	if(meta->journal)
 		g_string_append_printf(string, "\tjournal={%s},\n", meta->journal);
 	g_string_append_c(string, '}');
+	g_string_append_c(string, '\n');
 
-	*length = string->len;
+	if(length)
+		*length = string->len;
 	char* str = string->str;
 	g_string_free(string, false);
 	return str;

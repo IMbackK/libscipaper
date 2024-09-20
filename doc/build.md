@@ -1,4 +1,4 @@
-\page BUILD build
+\page BUILD Build
 
 # Build instructions
 

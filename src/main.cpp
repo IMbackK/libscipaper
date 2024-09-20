@@ -21,13 +21,32 @@
 #include <scipaper/scipaper.h>
 #include <algorithm>
 #include <cassert>
+#include <fstream>
+#include <types.h>
 
 #include "log.h"
 #include "options.h"
 
 static constexpr size_t resultsPerPage = 200;
 
-bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveText, const std::filesystem::path& outDir, size_t maxCount)
+static void saveBiblatex(const DocumentMeta* meta, const std::filesystem::path& path)
+{
+	char* biblatex = document_meta_get_biblatex(meta, NULL, NULL);
+	std::ofstream file;
+	file.open(path, std::ios_base::out);
+	if(file.is_open())
+	{
+		file<<biblatex;
+		file.close();
+	}
+	else
+	{
+		Log(Log::WARN)<<"Could not save biblatex to"<<path;
+	}
+	free(biblatex);
+}
+
+static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveText, bool printOnly, bool biblatex, const std::filesystem::path& outDir, size_t maxCount)
 {
 	Log(Log::INFO)<<"Trying to download "<<maxCount<<" results";
 	RequestReturn* req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), 0);
@@ -86,10 +105,35 @@ bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveTe
 							Log(Log::WARN)<<"Could not get text for document "<<jsonpath;
 					}
 
-					Log(Log::DEBUG)<<"saveing meta for "<<jsonpath.c_str();
-					bool ret = document_meta_save(jsonpath.c_str(), req->documents[i], text);
-					if(!ret)
-						Log(Log::WARN)<<"Could not save document metadata"<<jsonpath;
+					if(!printOnly)
+					{
+						if(!biblatex)
+						{
+							Log(Log::DEBUG)<<"saveing meta for "<<jsonpath.c_str();
+							bool ret = document_meta_save(jsonpath.c_str(), req->documents[i], text);
+							if(!ret)
+								Log(Log::WARN)<<"Could not save document metadata"<<jsonpath;
+						}
+						else
+						{
+							saveBiblatex(req->documents[i], jsonpath);
+						}
+					}
+					else
+					{
+						if(!biblatex)
+						{
+							char* json = document_meta_get_json(req->documents[i], text, NULL);
+							std::cout<<json;
+							free(json);
+						}
+						else
+						{
+							char* biblatex = document_meta_get_biblatex(req->documents[i], NULL, NULL);
+							std::cout<<biblatex;
+							free(biblatex);
+						}
+					}
 				}
 				else
 				{
@@ -168,7 +212,7 @@ int main(int argc, char** argv)
 	char* json = document_meta_get_json(&queryMeta, nullptr, &length);
 	Log(Log::DEBUG)<<"Using document meta: "<<json;
 	free(json);
-	ret = grabPapers(&queryMeta, config.dryRun, config.savePdf, config.fullText, config.outDir, config.maxNumber);
+	ret = grabPapers(&queryMeta, config.dryRun, config.savePdf, config.fullText, config.print, config.biblatex, config.outDir, config.maxNumber);
 	if(!ret)
 		return 1;
 	return 0;
