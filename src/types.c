@@ -356,7 +356,11 @@ char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const
 	g_string_append(string, ",\n");
 	g_string_free(authorString, true);
 
-	g_string_append_printf(string, "\tauthor={%s},\n", meta->author);
+	authorString = g_string_new(meta->author);
+	g_string_replace(authorString, ", ", " and ", 0);
+
+	g_string_append_printf(string, "\tauthor={%s},\n", authorString->str);
+	g_string_free(authorString, true);
 	if(meta->title)
 		g_string_append_printf(string, "\ttitle={%s},\n", meta->title);
 	if(meta->doi)
