@@ -38,6 +38,7 @@ static struct argp_option options[] =
   {"title",				't', "[STRING]",0,	"Search in title"},
   {"jornal",			'j', "[STRING]",0,	"Search in journal"},
   {"abstract",			'a', "[STRING]",0,	"Search in abstract"},
+  {"author",			'u', "[STRING]",0,	"Search for an author"},
   {"text",				'e', "[STRING]",0,	"Freeform text search"},
   {"doi",				'i', "[STRING]",0,	"Search for a specific doi" },
   {"dry-run",			'd', 0,			0,	"Just show how many results there are"},
@@ -60,6 +61,7 @@ struct Config
 	std::string text;
 	std::string doi;
 	std::string backend;
+	std::string author;
 	std::filesystem::path outDir = "./out";
 	size_t maxNumber = 100;
 	bool dryRun = false;
@@ -95,6 +97,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 		break;
 	case 'a':
 		config->abstract.assign(arg);
+		break;
+	case 'u':
+		config->author.assign(arg);
 		break;
 	case 'e':
 		config->text.assign(arg);

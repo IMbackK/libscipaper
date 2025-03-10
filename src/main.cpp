@@ -91,10 +91,13 @@ static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool
 
 					if(savePdf)
 					{
+						DocumentMeta* meta = document_meta_copy(req->documents[i]);
+						meta->backendId = 0;
 						std::filesystem::path pdfpath = outDir/(std::to_string(processed) + ".pdf");
-						bool ret = sci_save_document_to_file(req->documents[i], pdfpath.c_str());
+						bool ret = sci_save_document_to_file(meta, pdfpath.c_str());
 						if(!ret)
 							Log(Log::WARN)<<"Could not get pdf for document "<<jsonpath;
+						document_meta_free(meta);
 					}
 
 					char* text = nullptr;
@@ -199,6 +202,7 @@ int main(int argc, char** argv)
 
 	DocumentMeta queryMeta = {
 		.doi = const_cast<char*>(config.doi.empty() ? nullptr : config.doi.c_str()),
+		.author = const_cast<char*>(config.author.empty() ? nullptr : config.author.c_str()),
 		.title = const_cast<char*>(config.title.empty() ? nullptr : config.title.c_str()),
 		.journal = const_cast<char*>(config.journal.empty() ? nullptr : config.journal.c_str()),
 		.keywords = const_cast<char*>(config.keywords.empty() ? nullptr : config.keywords.c_str()),
