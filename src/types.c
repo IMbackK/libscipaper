@@ -172,7 +172,7 @@ void document_meta_combine(DocumentMeta* target, const DocumentMeta* source)
 		target->abstract =  g_strdup(source->abstract);
 }
 
-char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length)
+char* document_meta_get_json_only_fillrq(const DocumentMeta* meta, const FillReqest rq, const char* fullText, size_t* length)
 {
 	if(length)
 		*length = 0;
@@ -180,16 +180,23 @@ char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, siz
 		return NULL;
 
 	GString* string = g_string_new("{\n");
+	GString* entry;
 
-	GString* entry = createJsonEntry(1, "doi", meta->doi, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.doi)
+	{
+		entry = createJsonEntry(1, "doi", meta->doi, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "url", meta->url, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.url)
+	{
+		entry = createJsonEntry(1, "url", meta->url, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	if(meta->year != 0)
+	if(rq.year && meta->year != 0)
 	{
 		char* yearStr = g_strdup_printf("%lu", meta->year);
 		entry = createJsonEntry(1, "year", yearStr, false, true);
@@ -197,45 +204,75 @@ char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, siz
 		g_string_free(entry, true);
 	}
 
-	entry = createJsonEntry(1, "publisher", meta->publisher, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.publisher)
+	{
+		entry = createJsonEntry(1, "publisher", meta->publisher, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "volume", meta->volume, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.volume)
+	{
+		entry = createJsonEntry(1, "volume", meta->volume, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "pages", meta->pages, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.pages)
+	{
+		entry = createJsonEntry(1, "pages", meta->pages, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "author", meta->author, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.author)
+	{
+		entry = createJsonEntry(1, "author", meta->author, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "title", meta->title, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.title)
+	{
+		entry = createJsonEntry(1, "title", meta->title, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "journal", meta->journal, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.journal)
+	{
+		entry = createJsonEntry(1, "journal", meta->journal, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "issn", meta->issn, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.issn)
+	{
+		entry = createJsonEntry(1, "issn", meta->issn, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "keywords", meta->keywords, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.keywords)
+	{
+		entry = createJsonEntry(1, "keywords", meta->keywords, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "download-url", meta->downloadUrl, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.downloadUrl)
+	{
+		entry = createJsonEntry(1, "download-url", meta->downloadUrl, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
-	entry = createJsonEntry(1, "abstract", meta->abstract, true, true);
-	g_string_append(string, entry->str);
-	g_string_free(entry, true);
+	if(rq.abstract)
+	{
+		entry = createJsonEntry(1, "abstract", meta->abstract, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+	}
 
 	entry = createJsonEntry(1, "full-text", fullText, true, true);
 	g_string_append(string, entry->str);
@@ -246,6 +283,13 @@ char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, siz
 	if(length)
 		*length = string->len;
 	return string->str;
+}
+
+char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length)
+{
+	FillReqest rq;
+	memset(&rq, 0xFF, sizeof(FillReqest));
+	return document_meta_get_json_only_fillrq(meta, rq, fullText, length);
 }
 
 DocumentMeta* document_meta_load_from_json(char* jsonFile)
@@ -391,10 +435,10 @@ char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const
 	return str;
 }
 
-bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText)
+bool document_meta_save_only_fillrq(const char* fileName, const DocumentMeta* meta, const FillReqest fq, const char* fullText)
 {
 	size_t length;
-	char* jsonText = document_meta_get_json(meta, fullText, &length);
+	char* jsonText = document_meta_get_json_only_fillrq(meta, fq, fullText, &length);
 
 	if(jsonText)
 	{
@@ -410,6 +454,13 @@ bool document_meta_save(const char* fileName, const DocumentMeta* meta, const ch
 		return true;
 	}
 	return false;
+}
+
+bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText)
+{
+	FillReqest rq;
+	memset(&rq, 0xFF, sizeof(FillReqest));
+	return document_meta_save_only_fillrq(fileName, meta, rq, fullText);
 }
 
 bool document_meta_is_equal(const DocumentMeta* a, const DocumentMeta* b)

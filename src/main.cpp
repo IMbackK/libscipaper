@@ -23,6 +23,7 @@
 #include <cassert>
 #include <fstream>
 #include <types.h>
+#include <string.h>
 
 #include "log.h"
 #include "options.h"
@@ -46,11 +47,23 @@ static void saveBiblatex(const DocumentMeta* meta, const std::filesystem::path& 
 	free(biblatex);
 }
 
-static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveText, bool printOnly, bool biblatex, const std::filesystem::path& outDir, size_t maxCount)
+static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveText, bool printOnly, bool biblatex, const std::filesystem::path& outDir, size_t maxCount, bool titleDoi)
 {
 	Log(Log::INFO)<<"Trying to download "<<maxCount<<" results";
 	RequestReturn* req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), 0);
 	bool retried = false;
+
+	FillReqest fq = {};
+	if(titleDoi)
+	{
+		fq.title = true;
+		fq.doi = true;
+	}
+	else
+	{
+		memset(&fq, 0xFF, sizeof(FillReqest));
+	}
+
 	if(req)
 	{
 		size_t pages = req->totalCount/resultsPerPage;
@@ -113,7 +126,7 @@ static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool
 						if(!biblatex)
 						{
 							Log(Log::DEBUG)<<"saveing meta for "<<jsonpath.c_str();
-							bool ret = document_meta_save(jsonpath.c_str(), req->documents[i], text);
+							bool ret = document_meta_save_only_fillrq(jsonpath.c_str(), req->documents[i], fq, text);
 							if(!ret)
 								Log(Log::WARN)<<"Could not save document metadata"<<jsonpath;
 						}
@@ -126,7 +139,7 @@ static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool
 					{
 						if(!biblatex)
 						{
-							char* json = document_meta_get_json(req->documents[i], text, NULL);
+							char* json = document_meta_get_json_only_fillrq(req->documents[i], fq, text, NULL);
 							std::cout<<json;
 							free(json);
 						}
@@ -200,6 +213,12 @@ int main(int argc, char** argv)
 		}
 	}
 
+	if(config.biblatex && config.titleDoi)
+	{
+		Log(Log::ERROR)<<"--biblatex and --short-form can not be used togehter";
+		return 1;
+	}
+
 	DocumentMeta queryMeta = {
 		.doi = const_cast<char*>(config.doi.empty() ? nullptr : config.doi.c_str()),
 		.author = const_cast<char*>(config.author.empty() ? nullptr : config.author.c_str()),
@@ -216,7 +235,7 @@ int main(int argc, char** argv)
 	char* json = document_meta_get_json(&queryMeta, nullptr, &length);
 	Log(Log::DEBUG)<<"Using document meta: "<<json;
 	free(json);
-	ret = grabPapers(&queryMeta, config.dryRun, config.savePdf, config.fullText, config.print, config.biblatex, config.outDir, config.maxNumber);
+	ret = grabPapers(&queryMeta, config.dryRun, config.savePdf, config.fullText, config.print, config.biblatex, config.outDir, config.maxNumber, config.titleDoi);
 	if(!ret)
 		return 1;
 	return 0;

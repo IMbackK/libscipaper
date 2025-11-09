@@ -49,6 +49,7 @@ static struct argp_option options[] =
   {"backend",			'b', "[STRING]",	0,		"Ask scipaper to use a specific backend"},
   {"biblatex",			'x', 0,	0,		"metadata in biblatex format"},
   {"print",				'r', 0,	0,		"print metadata only, dont save anything"},
+  {"short-form",		's', 0,	0,		"only print or save the title and the doi of eatch result"},
   { 0 }
 };
 
@@ -63,12 +64,13 @@ struct Config
 	std::string backend;
 	std::string author;
 	std::filesystem::path outDir = "./out";
-	size_t maxNumber = 100;
+	size_t maxNumber = 10;
 	bool dryRun = false;
 	bool fullText = false;
 	bool savePdf = false;
 	bool biblatex = false;
 	bool print = false;
+	bool titleDoi = false;
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state)
@@ -127,6 +129,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 		break;
 	case 'r':
 		config->print = true;
+		break;
+	case 's':
+		config->titleDoi = true;
 		break;
 	default:
 		return ARGP_ERR_UNKNOWN;

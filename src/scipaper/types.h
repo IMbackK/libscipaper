@@ -172,6 +172,8 @@ char* document_meta_get_string(const DocumentMeta* meta);
  */
 char* document_meta_get_json(const DocumentMeta* meta, const char* fullText, size_t* length);
 
+char* document_meta_get_json_only_fillrq(const DocumentMeta* meta, const FillReqest rq, const char* fullText, size_t* length);
+
 /**
  * @brief create a DocumentMeta from json data saved by document_meta_get_json()
  * @param jsonFile a c string containing the json data
@@ -210,6 +212,8 @@ char* document_meta_get_biblatex(const DocumentMeta* meta, size_t* length, const
  * @return true on success false on failure
  */
 bool document_meta_save(const char* fileName, const DocumentMeta* meta, const char* fullText);
+
+bool document_meta_save_only_fillrq(const char* fileName, const DocumentMeta* meta, const FillReqest fq, const char* fullText);
 
 /**
  * @brief Frees a list/array of document metas
