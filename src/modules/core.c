@@ -188,7 +188,7 @@ static RequestReturn* core_fill_meta_impl(int *code, const DocumentMeta* meta, s
 	}
 	else if(page != 0)
 	{
-		sci_module_log(LL_DEBUG, "Using slow pageing for this request %s page: %i expected: %i %s %s",
+		sci_module_log(LL_DEBUG, "Using slow pageing for this request %s page: %zu expected: %i %s %s",
 					document_meta_is_equal(meta, priv->lastDocument) ? "" : "metas are not equal",
 					page, priv->nextPage, priv->scrollId ? "" : "no scrollId stored",
 					priv->lastMaxCount == maxCount ? "" : "maxCounts are not equal");
@@ -241,6 +241,12 @@ static RequestReturn* core_fill_meta_impl(int *code, const DocumentMeta* meta, s
 	{
 		g_string_append(searchString, "abstract:\"");
 		g_string_append(searchString, meta->abstract);
+		g_string_append(searchString, "\"+");
+	}
+	if(meta->doi)
+	{
+		g_string_append(searchString, "doi:\"");
+		g_string_append(searchString, meta->doi);
 		g_string_append(searchString, "\"+");
 	}
 	if(meta->searchText)
@@ -323,7 +329,7 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		return NULL;
 	}
 
-	if(meta->author || meta->title || meta->keywords || meta->searchText || meta->abstract)
+	if(meta->author || meta->title || meta->keywords || meta->searchText || meta->abstract || meta->doi)
 	{
 		int code = -1;
 		for(int i = 0; i < priv->retry && code != 0; ++i)
@@ -335,7 +341,7 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 	}
 	else
 	{
-		sci_module_log(LL_DEBUG, "Can not fill meta that dose not contain author, title, keywords, abstract or searchText");
+		sci_module_log(LL_DEBUG, "Can not fill meta that dose not contain doi, author, title, keywords, abstract or searchText");
 	}
 
 	return results;

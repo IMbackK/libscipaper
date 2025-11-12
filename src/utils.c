@@ -83,11 +83,11 @@ static GString* wgetUrlUa(const char* url, int timeout)
 	assert(ret == CURLE_OK);
 	ret = curl_easy_setopt(curlContext, CURLOPT_WRITEDATA, buffer);
 	assert(ret == CURLE_OK);
-	ret = curl_easy_setopt(curlContext, CURLOPT_TIMEOUT, timeout);
+	ret = curl_easy_setopt(curlContext, CURLOPT_TIMEOUT, (long)timeout);
 	assert(ret == CURLE_OK);
 	ret = curl_easy_setopt(curlContext, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0");
 	assert(ret == CURLE_OK);
-	ret = curl_easy_setopt(curlContext, CURLOPT_SERVER_RESPONSE_TIMEOUT, timeout/3);
+	ret = curl_easy_setopt(curlContext, CURLOPT_SERVER_RESPONSE_TIMEOUT, (long)timeout/3);
 	assert(ret == CURLE_OK);
 	ret = curl_easy_perform(curlContext);
 	curl_easy_cleanup(curlContext);

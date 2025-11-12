@@ -50,7 +50,8 @@ static struct argp_option options[] =
   {"backend",			'b', "[STRING]",	0,		"Ask scipaper to use a specific backend"},
   {"biblatex",			'x', 0,	0,		"metadata in biblatex format"},
   {"print",				'r', 0,	0,		"print metadata only, dont save anything"},
-  {"short-form",		's', 0,	0,		"only print or save the title and the doi of eatch result"},
+  {"short",				's', 0,	0,		"only print or save the title and the doi of eatch result"},
+  {"sort",				's', 0,	0,		"only print or save the title and the doi of eatch result"},
   { 0 }
 };
 
