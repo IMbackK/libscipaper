@@ -26,7 +26,7 @@
 
 struct SciBackend
 {
-	RequestReturn* (*fill_meta)(const DocumentMeta* meta, size_t page, size_t maxCount, void* user_data);
+	RequestReturn* (*fill_meta)(const DocumentMeta* meta, size_t maxCount, sorting_mode_t sortMode, size_t page, void* user_data);
 	char* (*get_document_text)(const DocumentMeta* meta, void* user_data);
 	PdfData* (*get_document_pdf_data)(const DocumentMeta* meta, void* user_data);
 	int id;
@@ -97,7 +97,7 @@ size_t sci_get_backend_count(void)
 }
 
 int sci_plugin_register(const BackendInfo* backend_info,
-						RequestReturn* (*fill_meta_in)(const DocumentMeta* meta, size_t page, size_t maxCount, void* user_data),
+						RequestReturn* (*fill_meta_in)(const DocumentMeta* meta, size_t maxCount, sorting_mode_t sortMode, size_t page, void* user_data),
 						char* (*get_document_text_in)(const DocumentMeta* meta, void* user_data),
 						PdfData* (*get_document_pdf_data_in)(const DocumentMeta* meta, void* user_data), void* user_data)
 {
@@ -199,7 +199,7 @@ static void sci_compleat_fill_meta(DocumentMeta* meta, const FillReqest* fill)
 	}
 }
 
-RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t maxCount, size_t page)
+RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t maxCount, sorting_mode_t sortMode, size_t page)
 {
 	if(meta->backendId != 0 && fill)
 	{
@@ -214,7 +214,7 @@ RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, s
 		if(backend->fill_meta && (meta->backendId == backend->id || meta->backendId == 0))
 		{
 			sci_log(LL_DEBUG, "%s: Trying to fill using %s", __func__, backend->backend_info->name);
-			RequestReturn* newMetas = backend->fill_meta(meta, maxCount, page, backend->user_data);
+			RequestReturn* newMetas = backend->fill_meta(meta, maxCount, sortMode, page, backend->user_data);
 			if(newMetas)
 			{
 				for(size_t i = 0; i < newMetas->count; ++i)

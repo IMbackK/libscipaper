@@ -56,7 +56,7 @@ DocumentMeta* sci_find_by_doi(const char* doi, int backendId)
 	DocumentMeta meta = {0};
 	meta.doi = (char*)doi;
 	meta.backendId = backendId;
-	RequestReturn* documents = sci_fill_meta(&meta, NULL, 1, 0);
+	RequestReturn* documents = sci_fill_meta(&meta, NULL, 1, SCI_SORT_RELEVANCE,  0);
 	if(documents)
 	{
 		DocumentMeta* meta = document_meta_copy(documents->documents[0]);
@@ -69,18 +69,18 @@ DocumentMeta* sci_find_by_doi(const char* doi, int backendId)
 	}
 }
 
-RequestReturn* sci_find_by_author(const char* author, size_t maxCount)
+RequestReturn* sci_find_by_author(const char* author, size_t maxCount, sorting_mode_t sortMode)
 {
 	DocumentMeta meta = {0};
 	meta.author = (char*)author;
-	return sci_fill_meta(&meta, NULL, maxCount, 0);
+	return sci_fill_meta(&meta, NULL, maxCount, sortMode, 0);
 }
 
 DocumentMeta* sci_find_by_title(const char* title)
 {
 	DocumentMeta meta = {0};
 	meta.title = (char*)title;
-	RequestReturn* documents = sci_fill_meta(&meta, NULL, 1, 0);
+	RequestReturn* documents = sci_fill_meta(&meta, NULL, 1, SCI_SORT_RELEVANCE, 0);
 	if(documents)
 	{
 		DocumentMeta* meta = document_meta_copy(documents->documents[0]);
@@ -93,11 +93,11 @@ DocumentMeta* sci_find_by_title(const char* title)
 	}
 }
 
-RequestReturn* sci_find_by_journal(const char* jornal, size_t maxCount)
+RequestReturn* sci_find_by_journal(const char* jornal, size_t maxCount, sorting_mode_t sortMode)
 {
 	DocumentMeta meta = {0};
 	meta.journal = (char*)jornal;
-	return sci_fill_meta(&meta, NULL, maxCount, 0);
+	return sci_fill_meta(&meta, NULL, maxCount, sortMode, 0);
 }
 
 bool sci_save_pdf_to_file(const PdfData* data, const char* fileName)

@@ -61,7 +61,9 @@ void request_return_free(RequestReturn* reqRet)
 
 DocumentMeta* document_meta_new(void)
 {
-	return g_malloc0(sizeof(DocumentMeta));
+	DocumentMeta* meta = g_malloc0(sizeof(DocumentMeta));
+	meta->references = -1;
+	return meta;
 }
 
 DocumentMeta* document_meta_copy(const DocumentMeta* meta)
@@ -81,6 +83,7 @@ DocumentMeta* document_meta_copy(const DocumentMeta* meta)
 	copy->keywords = g_strdup(meta->keywords);
 	copy->downloadUrl = g_strdup(meta->downloadUrl);
 	copy->abstract = g_strdup(meta->abstract);
+	copy->references = meta->references;
 	copy->searchText = g_strdup(meta->searchText);
 	copy->backendId = meta->backendId;
 	copy->hasFullText = meta->hasFullText;
@@ -170,6 +173,8 @@ void document_meta_combine(DocumentMeta* target, const DocumentMeta* source)
 		target->downloadUrl =  g_strdup(source->downloadUrl);
 	if(!target->abstract)
 		target->abstract =  g_strdup(source->abstract);
+	if(target->references < source->references)
+		target->references = source->references;
 }
 
 char* document_meta_get_json_only_fillrq(const DocumentMeta* meta, const FillReqest rq, const char* fullText, size_t* length)
@@ -202,6 +207,7 @@ char* document_meta_get_json_only_fillrq(const DocumentMeta* meta, const FillReq
 		entry = createJsonEntry(1, "year", yearStr, false, true);
 		g_string_append(string, entry->str);
 		g_string_free(entry, true);
+		g_free(yearStr);
 	}
 
 	if(rq.publisher)
@@ -260,6 +266,15 @@ char* document_meta_get_json_only_fillrq(const DocumentMeta* meta, const FillReq
 		g_string_free(entry, true);
 	}
 
+	if(rq.references && meta->references >= 0)
+	{
+		char* referanceStr = g_strdup_printf("%i", meta->references);
+		entry = createJsonEntry(1, "referances", referanceStr, true, true);
+		g_string_append(string, entry->str);
+		g_string_free(entry, true);
+		g_free(referanceStr);
+	}
+
 	if(rq.downloadUrl)
 	{
 		entry = createJsonEntry(1, "download-url", meta->downloadUrl, true, true);
@@ -306,6 +321,7 @@ DocumentMeta* document_meta_load_from_json(char* jsonFile)
 	meta->doi = g_strdup(nx_json_get(json, "doi")->text_value);
 	meta->url = g_strdup(nx_json_get(json, "url")->text_value);
 	meta->year = nx_json_get(json, "year")->int_value;
+	meta->references = nx_json_get(json, "references")->int_value;
 	meta->publisher = g_strdup(nx_json_get(json, "publisher")->text_value);
 	meta->volume = g_strdup(nx_json_get(json, "volume")->text_value);
 	meta->pages = g_strdup(nx_json_get(json, "pages")->text_value);

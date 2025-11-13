@@ -47,10 +47,11 @@ void sci_log_set_verbosity(loglevel_t verbosity);
  * If backendId == 0 all backends will be checked until one can identify the document otherwise the backend with the id backendId will be used
  * @param fill A pointer to a FillReqest struct that describes what fields are required by user, can be NULL for "don't care"
  * @param maxCount maximum number of documents to match
+ * @param sortingMode in what order to return the document metas
  * @param page if page is set > 0, the first page*maxCount entries are skipped and the subsequent results are returned instead
  * @return A RequestReturn, to be freed with request_return_free(), or NULL if none could be found
  */
-RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t maxCount, size_t page);
+RequestReturn* sci_fill_meta(const DocumentMeta* meta, const FillReqest* fill, size_t maxCount, sorting_mode_t sortingMode, size_t page);
 
 /**
  * @brief Tries to find the metadata of the document with the given DOI
@@ -74,18 +75,20 @@ DocumentMeta* sci_find_by_title(const char* title);
  *
  * @param author Author to search for
  * @param maxCount maximum number of documents to match
+ * @param sortingMode in what order to return the document metas
  * @return A RequestReturn, to be freed with request_return_free(), or NULL if none could be found
  */
-RequestReturn* sci_find_by_author(const char* author, size_t maxCount);
+RequestReturn* sci_find_by_author(const char* author, size_t maxCount, sorting_mode_t sortingMode);
 
 /**
  * @brief Tries to find the documents by in a certain journal
  *
  * @param journal journal to search for
  * @param maxCount maximum number of documents to match
+ * @param sortingMode in what order to return the document metas
  * @return A list of filled RequestReturn, to be freed with request_return_free(), or NULL if none could be found
  */
-RequestReturn* sci_find_by_journal(const char* journal, size_t maxCount);
+RequestReturn* sci_find_by_journal(const char* journal, size_t maxCount, sorting_mode_t sortingMode);
 
 /**
  * @brief Tries to get the full text of a certain document

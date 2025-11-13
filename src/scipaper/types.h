@@ -54,6 +54,16 @@ typedef enum {
 } capability_flags_t;
 
 /**
+ * @brief Sorting direction of output
+ */
+typedef enum {
+	SCI_SORT_RELEVANCE = 0,		/**< This effectively lets the backend choose a sorting direction*/
+	SCI_SORT_REFERANCES,	/**< Sort by most referanced work to least referanced work*/
+	SCI_SORT_OLDETST,	/**< Sort by publication date oldest to newest*/
+	SCI_SORT_NEWETST,	/**< Sort by publication date newest to oldest*/
+} sorting_mode_t;
+
+/**
  * @brief returns the capabilities flags as a human readable string.
  * @param capabilities Print with INFO priority if true and DEBUG priority if false
  * @return A newly allocated string stating the flags
@@ -95,6 +105,7 @@ typedef struct _FillReqest {
 	bool keywords:1; /**< Keywords given by the author of the paper for the paper */
 	bool downloadUrl:1; /**< URL where the full text of the document can be found */
 	bool abstract:1; /**< abstract of the document */
+	bool references:1; /**< how often the article has been cited */
 } FillReqest;
 
 /**
@@ -115,6 +126,7 @@ typedef struct _DocumentMeta {
 	char* keywords; /**< Keywords given by the author of the paper for the paper */
 	char* downloadUrl; /**< URL where the full text of the document can be found */
 	char* abstract; /**< abstract of the document */
+	int references; /**< how often the article has been cited */
 
 	char* searchText; /**< freeform text to search for in backends */
 	bool hasFullText; /**< a hint that document has full text available */

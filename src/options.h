@@ -24,6 +24,7 @@
 #include <iostream>
 #include <filesystem>
 #include "log.h"
+#include "types.h"
 
 const char *argp_program_version = "1.0";
 const char *argp_program_bug_address = "<carl@uvos.xyz>";
@@ -71,6 +72,7 @@ struct Config
 	bool biblatex = false;
 	bool print = false;
 	bool titleDoi = false;
+	sorting_mode_t sortMode = SCI_SORT_RELEVANCE;
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state)

@@ -32,12 +32,13 @@ G_MODULE_EXPORT BackendInfo backend_info = {
 	.name = MODULE_NAME,
 };
 
-RequestReturn* test_fill_meta_in(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
+RequestReturn* test_fill_meta_in(const DocumentMeta* meta, size_t maxCount, sorting_mode_t sortMode, size_t page, void* userData)
 {
 	(void)meta;
 	(void)maxCount;
 	(void)userData;
 	(void)page;
+	(void)sortMode;
 
 	if(maxCount == 0)
 	{
@@ -51,7 +52,7 @@ RequestReturn* test_fill_meta_in(const DocumentMeta* meta, size_t maxCount, size
 char* test_get_document_text_in(const DocumentMeta* meta, void* userData)
 {
 	(void)userData;
-	RequestReturn* results = sci_fill_meta(meta, NULL, 1, 0);
+	RequestReturn* results = sci_fill_meta(meta, NULL, 1, SCI_SORT_RELEVANCE, 0);
 	if(results)
 	{
 		request_return_free(results);

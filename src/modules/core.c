@@ -173,8 +173,10 @@ static bool core_is_in_range(int page, int nextPage)
 }
 
 static RequestReturn* core_fill_meta_impl(int *code, const DocumentMeta* meta, size_t maxCount,
-										  size_t page, struct CorePriv* priv)
+										  sorting_mode_t sortMode, size_t page, struct CorePriv* priv)
 {
+	(void)sortMode;
+
 	RequestReturn* results = NULL;
 	bool fastPage = false;
 	if(page == 0 || (document_meta_is_equal(meta, priv->lastDocument) &&
@@ -310,7 +312,7 @@ static RequestReturn* core_fill_meta_impl(int *code, const DocumentMeta* meta, s
 	return results;
 }
 
-static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
+static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, sorting_mode_t sortMode, size_t page, void* userData)
 {
 	struct CorePriv* priv = userData;
 	RequestReturn* results = NULL;
@@ -328,7 +330,7 @@ static RequestReturn* core_fill_meta(const DocumentMeta* meta, size_t maxCount, 
 		{
 			if(i != 0)
 				sci_module_log(LL_WARN, "Could not get results from core, retrying %i of %i", i+1, priv->retry);
-			results = core_fill_meta_impl(&code, meta, maxCount, page, priv);
+			results = core_fill_meta_impl(&code, meta, maxCount, sortMode, page, priv);
 		}
 	}
 	else
@@ -350,7 +352,7 @@ char* core_get_document_text(const DocumentMeta* meta, void* userData)
 	}
 	else
 	{
-		RequestReturn* metas = core_fill_meta(meta, 1, 0, priv);
+		RequestReturn* metas = core_fill_meta(meta, 1, SCI_SORT_RELEVANCE, 0, priv);
 		if(!metas)
 		{
 			return NULL;

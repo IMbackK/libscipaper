@@ -42,7 +42,7 @@ static BackendInfo backend_info = {
 #define CROSSREF_URL_DOMAIN  "https://api.crossref.org/"
 #define CROSSREF_METHOD_WORKS "works"
 #define CROSSREF_METHOD_JOURNALS "journals"
-#define CROSSREF_SELECT "DOI,ISSN,abstract,author,publisher,reference,volume,title,issue,page,published"
+#define CROSSREF_SELECT "DOI,ISSN,abstract,author,publisher,reference,volume,title,issue,page,published,created"
 #define CROSSREF_QUERY_ITEM_LIMIT 1000
 
 struct CrPriv
@@ -158,8 +158,24 @@ static DocumentMeta* cf_parse_work_json(const nx_json* json, const DocumentMeta*
 	g_string_free(authorString, true);
 
 	const nx_json* publishedArray = nx_json_get(nx_json_get(json, "published"), "date-parts");
-	if(publishedArray->type == NX_JSON_ARRAY && publishedArray->length > 0)
-		meta->year = nx_json_item(publishedArray, 0)->int_value;
+	if(publishedArray->type == NX_JSON_ARRAY && publishedArray->length > 0) {
+		const nx_json* partsArray = nx_json_item(publishedArray, 0);
+		if(partsArray->type == NX_JSON_ARRAY && partsArray->length > 0)
+			meta->year = nx_json_item(partsArray, 0)->int_value;
+	}
+
+	if(!meta->year) {
+		const nx_json* publishedPrintArray = nx_json_get(nx_json_get(json, "published-print"), "date-parts");
+		if(publishedPrintArray->type == NX_JSON_ARRAY && publishedPrintArray->length > 0) {
+			const nx_json* partsArray = nx_json_item(publishedPrintArray, 0);
+			if(partsArray->type == NX_JSON_ARRAY && partsArray->length > 0)
+				meta->year = nx_json_item(partsArray, 0)->int_value;
+		}
+	}
+
+	const nx_json* referancedby = nx_json_get(json, "is-referenced-by-count");
+	if(referancedby->type == NX_JSON_INTEGER)
+		meta->references = referancedby->int_value;
 
 	const nx_json* journalNode = nx_json_get(json, "referance");
 	if(journalNode != NX_JSON_NULL )
@@ -238,7 +254,7 @@ static RequestReturn* cf_fill_from_doi(const DocumentMeta* meta, struct CrPriv* 
 	return ret;
 }
 
-static RequestReturn* cf_fill_try_work_query(const DocumentMeta* meta, size_t maxCount, size_t page, struct CrPriv* priv)
+static RequestReturn* cf_fill_try_work_query(const DocumentMeta* meta, size_t maxCount, sorting_mode_t sortingMode, size_t page, struct CrPriv* priv)
 {
 	GSList* queryList = NULL;
 
@@ -256,6 +272,27 @@ static RequestReturn* cf_fill_try_work_query(const DocumentMeta* meta, size_t ma
 		queryList = g_slist_prepend(queryList, pair_new("query.bibliographic", yearStr));
 		g_free(yearStr);
 	}
+	switch(sortingMode)
+	{
+		case SCI_SORT_REFERANCES:
+			queryList = g_slist_prepend(queryList, pair_new("sort", "is-referenced-by-count"));
+			queryList = g_slist_prepend(queryList, pair_new("order", "desc"));
+		break;
+		case SCI_SORT_NEWETST:
+			queryList = g_slist_prepend(queryList, pair_new("sort", "published"));
+			queryList = g_slist_prepend(queryList, pair_new("order", "desc"));
+		break;
+		case SCI_SORT_OLDETST:
+			queryList = g_slist_prepend(queryList, pair_new("sort", "published"));
+			queryList = g_slist_prepend(queryList, pair_new("order", "asc"));
+		break;
+		case SCI_SORT_RELEVANCE:
+		default:
+			queryList = g_slist_prepend(queryList, pair_new("sort", "score"));
+			queryList = g_slist_prepend(queryList, pair_new("order", "asc"));
+		break;
+	}
+
 
 	if(!queryList)
 		return NULL;
@@ -317,7 +354,7 @@ static RequestReturn* cf_fill_try_work_query(const DocumentMeta* meta, size_t ma
 	return documents;
 }
 
-static RequestReturn* cf_fill_meta_in(const DocumentMeta* meta, size_t maxCount, size_t page, void* userData)
+static RequestReturn* cf_fill_meta_in(const DocumentMeta* meta, size_t maxCount, sorting_mode_t sortingMode, size_t page, void* userData)
 {
 	struct CrPriv* priv = userData;
 	if(maxCount == 0)
@@ -329,7 +366,7 @@ static RequestReturn* cf_fill_meta_in(const DocumentMeta* meta, size_t maxCount,
 	if(meta->doi)
 		return cf_fill_from_doi(meta, priv);
 
-	return cf_fill_try_work_query(meta, maxCount, page, priv);
+	return cf_fill_try_work_query(meta, maxCount, sortingMode, page, priv);
 }
 
 G_MODULE_EXPORT const gchar *sci_module_init(void** data);

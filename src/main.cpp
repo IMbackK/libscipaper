@@ -47,10 +47,19 @@ static void saveBiblatex(const DocumentMeta* meta, const std::filesystem::path& 
 	free(biblatex);
 }
 
-static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool saveText, bool printOnly, bool biblatex, const std::filesystem::path& outDir, size_t maxCount, bool titleDoi)
+static bool grabPapers(const DocumentMeta* meta,
+					   bool dryRun,
+					   bool savePdf,
+					   bool saveText,
+					   bool printOnly,
+					   bool biblatex,
+					   const std::filesystem::path& outDir,
+					   size_t maxCount,
+					   sorting_mode_t sortMode,
+					   bool titleDoi)
 {
 	Log(Log::INFO)<<"Trying to download "<<maxCount<<" results";
-	RequestReturn* req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), 0);
+	RequestReturn* req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), sortMode, 0);
 	bool retried = false;
 
 	FillReqest fq = {};
@@ -81,7 +90,7 @@ static bool grabPapers(const DocumentMeta* meta, bool dryRun, bool savePdf, bool
 		for(size_t page = 0; page <= pages; ++page)
 		{
 			if(page != 0)
-				req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), page);
+				req = sci_fill_meta(meta, nullptr, std::min(maxCount, resultsPerPage), sortMode, page);
 			if(!req)
 			{
 				if(!retried)
@@ -235,7 +244,7 @@ int main(int argc, char** argv)
 	char* json = document_meta_get_json(&queryMeta, nullptr, &length);
 	Log(Log::DEBUG)<<"Using document meta: "<<json;
 	free(json);
-	ret = grabPapers(&queryMeta, config.dryRun, config.savePdf, config.fullText, config.print, config.biblatex, config.outDir, config.maxNumber, config.titleDoi);
+	ret = grabPapers(&queryMeta, config.dryRun, config.savePdf, config.fullText, config.print, config.biblatex, config.outDir, config.maxNumber, config.sortMode, config.titleDoi);
 	if(!ret)
 		return 1;
 	return 0;
