@@ -228,6 +228,12 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	if(config.sortMode == SCI_SORT_INVALID)
+	{
+		Log(Log::ERROR)<<"sorting mode must be one of: relevance, referances, oldest or newest";
+		return 1;
+	}
+
 	DocumentMeta queryMeta = {
 		.doi = const_cast<char*>(config.doi.empty() ? nullptr : config.doi.c_str()),
 		.author = const_cast<char*>(config.author.empty() ? nullptr : config.author.c_str()),

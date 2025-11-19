@@ -57,11 +57,14 @@ typedef enum {
  * @brief Sorting direction of output
  */
 typedef enum {
+	SCI_SORT_INVALID = -1,
 	SCI_SORT_RELEVANCE = 0,		/**< This effectively lets the backend choose a sorting direction*/
 	SCI_SORT_REFERANCES,	/**< Sort by most referanced work to least referanced work*/
 	SCI_SORT_OLDETST,	/**< Sort by publication date oldest to newest*/
 	SCI_SORT_NEWETST,	/**< Sort by publication date newest to oldest*/
 } sorting_mode_t;
+
+const char* sorting_mode_name(sorting_mode_t mode);
 
 /**
  * @brief returns the capabilities flags as a human readable string.

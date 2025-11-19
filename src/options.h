@@ -51,6 +51,7 @@ static struct argp_option options[] =
   {"biblatex",			'x', 0,	0,		"metadata in biblatex format"},
   {"print",				'r', 0,	0,		"print metadata only, dont save anything"},
   {"short",				's', 0,	0,		"only print or save the title and the doi of eatch result"},
+  {"sort",				'm', 0,	0,		"set the sorting mode"},
   { 0 }
 };
 
@@ -74,6 +75,19 @@ struct Config
 	bool titleDoi = false;
 	sorting_mode_t sortMode = SCI_SORT_RELEVANCE;
 };
+
+static sorting_mode_t string_to_sort_mode(const std::string& mode)
+{
+	if(mode == sorting_mode_name(SCI_SORT_RELEVANCE))
+		return SCI_SORT_RELEVANCE;
+	if(mode == sorting_mode_name(SCI_SORT_REFERANCES))
+		return SCI_SORT_REFERANCES;
+	if(mode == sorting_mode_name(SCI_SORT_OLDETST))
+		return SCI_SORT_OLDETST;
+	if(mode == sorting_mode_name(SCI_SORT_NEWETST))
+		return SCI_SORT_NEWETST;
+	return SCI_SORT_INVALID;
+}
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -134,6 +148,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 		break;
 	case 's':
 		config->titleDoi = true;
+		break;
+	case 'm':
+		config->sortMode = string_to_sort_mode(arg);
 		break;
 	default:
 		return ARGP_ERR_UNKNOWN;

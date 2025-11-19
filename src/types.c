@@ -41,6 +41,23 @@ char* capability_flags_get_str(capability_flags_t capabilities)
 	return str;
 }
 
+const char* sorting_mode_name(sorting_mode_t mode)
+{
+	switch(mode)
+	{
+		case SCI_SORT_RELEVANCE:
+			return "relevance";
+		case SCI_SORT_REFERANCES:
+			return "referances";
+		case SCI_SORT_OLDETST:
+			return "oldest";
+		case SCI_SORT_NEWETST:
+			return "newest";
+		default:
+			return NULL;
+	}
+}
+
 RequestReturn* request_return_new(size_t count, size_t maxCount)
 {
 	RequestReturn* ret = g_malloc0(sizeof(*ret));
